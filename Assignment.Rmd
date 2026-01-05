@@ -1,0 +1,126 @@
+---
+title: "Group Assignment Causal Machine Learning"
+authors: "Egor Trushkov, 6672874; Dominic Pöltl, 6618670"
+date: "`r Sys.Date()`"
+output:
+  html_notebook:
+    toc: true
+    toc_float: true
+    code_folding: show
+---
+
+### 2.1 Literature Review
+
+...
+
+### 2.2 Identification of LATT/LATU
+
+#### LATT
+
+To identify the LATT we use the following standard IV assumptions:
+
+(A1) Random Assignment of Z: $Z \perp (Y(1), Y(0), D(1), D(0))$
+
+(A2) Exclusion Restriction: $Y(d, z) = Y(d)$ for all $d, z$
+
+This also implies:
+
+\$\$
+
+Y(D(1)) = Y(1)D(1) + Y(0)(1-D(1)) \\
+
+Y(D(0)) = Y(1)D(0) + Y(0)(1-D(0))
+
+\$\$
+
+(A3) Relevance: $E[D(1)] \neq E[D(0)]$
+
+Additionally we impose the assumption of monotonicity and rule out defiers:
+
+(A4) Monotonicity: $P(D(1) \geq D(0)) = 1$
+
+First we need to show, that $\tau_{LATT}$ that is defined as $\tau_{LATT} = E[Y(1)-Y(0) \mid D(0)=0, D(1)=1, D=1]$ can be written as the ratio of the ATT of the instrument on the outcome and the ATT of the instrument on the treatment:
+
+$$\tau_{LATT} = \frac{E[ Y(1,D(1)) - Y(0,D(0)) \mid D=1]} {E[D(1) - D(0) \mid D=1]}$$
+
+We start this proof with the numerator of the second term:
+
+$$
+\begin{aligned}
+& E[ Y(1,D(1)) - Y(0,D(0)) \mid D=1] \\
+& \stackrel{\text{(A2)}}{=} E[ Y(D(1)) - Y(D(0)) \mid D=1] \\
+& = E[ Y(1)D(1) + Y(0)(1-D(1)) - (Y(1)D(0) + Y(0)(1-D(0))) \mid D=1] \\
+&= E[Y(1)D(1) + Y(0) - Y(0)D(1) - Y(1)D(0) - Y(0) + Y(0)D(0) \mid D=1] \\
+& = E[ Y(1)(D(1)-D(0)) + Y(0)(D(0)-D(1)) \mid D=1] \\
+& = E[ (Y(1)-Y(0))(D(1)-D(0)) \mid D=1] \\
+\end{aligned}
+$$
+
+We can divide this based on four diffeerent compliance types:
+
+1.  Always Takers: $D(1)=1, D(0)=1 \implies D(1) - D(0) = 0$
+2.  Never Takers: $D(1)=0, D(0)=0 \implies D(1) - D(0) = 0$
+3.  Compliers: $D(1)=1, D(0)=0 \implies D(1) - D(0) = 1$
+4.  Defiers: $D(1)=0, D(0)=1 \implies D(1) - D(0) = -1$
+
+Under our monotonicity assumption (A4) we can rule out defiers. Formally this implies that $P(D(1) - D(0) = -1 ) = P(Defiers) = P(Defiers \mid D=1) = 0$.
+
+We can rewite our previous equation using the law of iterated expectations and conditioning on the compliance types:
+
+$$
+\begin{aligned}
+& E[ (Y(1)-Y(0))(D(1)-D(0)) \mid D=1] \\
+& = E[ (Y(1)-Y(0))(D(1)-D(0)) \mid D=1, \text{Always Takers}] P(\text{Always Takers} \mid D=1) \\
+& + E[ (Y(1)-Y(0))(D(1)-D(0)) \mid D=1, \text{Never Takers}] P(\text{Never Takers} \mid D=1) \\
+& + E[ (Y(1)-Y(0))(D(1)-D(0)) \mid D=1, \text{Compliers}] P(\text{Compliers} \mid D=1) \\
+& + E[ (Y(1)-Y(0))(D(1)-D(0)) \mid D=1, \text{Defiers}] P(\text{Defiers} \mid D=1) \\
+& \stackrel{\text{(A4)}}{=} 0 \cdot P(\text{Always Takers} \mid D=1) \\
+& + 0 \cdot P(\text{Never Takers} \mid D=1) \\
+& + E[ (Y(1)-Y(0)) \cdot 1 \mid D=1, \text{Compliers}] P(\text{Compliers} \mid D=1) \\
+& + (-1) \cdot \underset{\textstyle=0}{\underbrace{P(\text{Defiers} \mid D=1)}} \\
+& = E[ Y(1)-Y(0) \mid D=1, \text{Compliers}] P(\text{Compliers} \mid D=1) \\
+& = E[ Y(1)-Y(0) \mid D(0)=0, D(1)=1, D=1] P(D(0)=0, D(1)=1 \mid D=1) \\
+\end{aligned}
+$$
+
+
+We have show the equivalence of:
+
+$$
+E[ Y(1,D(1)) - Y(0,D(0)) \mid D=1] = E[ Y(1)-Y(0) \mid D(0)=0, D(1)=1, D=1] P(D(0)=0, D(1)=1 \mid D=1)
+$$
+
+Now we can rearrange this to express $\tau_{LATT}$:
+
+$$
+E[ Y(1)-Y(0) \mid D(0)=0, D(1)=1, D=1] = \frac{E[ Y(1,D(1)) - Y(0,D(0)) \mid D=1]}{P(D(0)=0, D(1)=1 \mid D=1)}
+$$
+
+Now we show that the denominator can be written as $E[D(1) - D(0) \mid D=1]$:
+
+$$
+\begin{aligned}
+& E[D(1) - D(0) \mid D=1] \\
+& = E[D(1) - D(0) \mid D=1, \text{Always Takers}] P(\text{Always Takers} \mid D=1) \\
+& + E[D(1) - D(0) \mid D=1, \text{Never Takers}] P(\text{Never Takers} \mid D=1) \\
+& + E[D(1) - D(0) \mid D=1, \text{Compliers}] P(\text{Compliers} \mid D=1) \\
+& + E[D(1) - D(0) \mid D=1, \text{Defiers}] P(\text{Defiers} \mid D=1) \\
+& \stackrel{\text{(A4)}}{=} 0 \cdot P(\text{Always Takers} \mid D=1) \\
+& + 0 \cdot P(\text{Never Takers} \mid D=1) \\
+& + 1 \cdot P(\text{Compliers} \mid D=1) \\
+& + (-1) \cdot \underset{\textstyle=0}{\underbrace{P(\text{Defiers} \mid D=1)}} \\
+& = P(\text{Compliers} \mid D=1) \\
+& = P(D(0)=0, D(1)=1 \mid D=1) \\
+\end{aligned}
+$$
+
+Plugging this back into our previous equation we get:
+
+$$
+E[ Y(1)-Y(0) \mid D(0)=0, D(1)=1, D=1] = \frac{E[ Y(1,D(1)) - Y(0,D(0)) \mid D=1]}{E[D(1) - D(0) \mid D=1]} \quad \blacksquare
+$$ 
+
+Which we wanted to show.
+
+
+Now we will proceed with the identification of the LATT under the stated assumptions. We start with the numerator:
