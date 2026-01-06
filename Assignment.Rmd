@@ -65,24 +65,25 @@ We can divide this based on four diffeerent compliance types:
 
 Under our monotonicity assumption (A4) we can rule out defiers. Formally this implies that $P(D(1) - D(0) = -1 ) = P(Defiers) = P(Defiers \mid D=1) = 0$.
 
+Also, when we condition on D = 1, never takers are not included in this group, since they never take the treatment regardless of the instrument value. Thus, when we condition on D = 1, the only compliance types that remain are always takers and compliers. Formally, $P(Never Takers | D=1) = 0$.
+
 We can rewite our previous equation using the law of iterated expectations and conditioning on the compliance types:
 
 $$
 \begin{aligned}
 & E[ (Y(1)-Y(0))(D(1)-D(0)) \mid D=1] \\
-& = E[ (Y(1)-Y(0))(D(1)-D(0)) \mid D=1, \text{Always Takers}] P(\text{Always Takers} \mid D=1) \\
-& + E[ (Y(1)-Y(0))(D(1)-D(0)) \mid D=1, \text{Never Takers}] P(\text{Never Takers} \mid D=1) \\
-& + E[ (Y(1)-Y(0))(D(1)-D(0)) \mid D=1, \text{Compliers}] P(\text{Compliers} \mid D=1) \\
-& + E[ (Y(1)-Y(0))(D(1)-D(0)) \mid D=1, \text{Defiers}] P(\text{Defiers} \mid D=1) \\
+& \stackrel{\text{(LIE)}}{=} E[ (Y(1)-Y(0))(D(1)-D(0)) \mid D=1, \text{Always Takers}] \cdot P(\text{Always Takers} \mid D=1) \\
+& + E[ (Y(1)-Y(0))(D(1)-D(0)) \mid D=1, \text{Never Takers}] \cdot \underset{\textstyle=0}{\underbrace{P(\text{Never Takers} \mid D=1)}} \\
+& + E[ (Y(1)-Y(0))(D(1)-D(0)) \mid D=1, \text{Compliers}] \cdot P(\text{Compliers} \mid D=1) \\
+& + E[ (Y(1)-Y(0))(D(1)-D(0)) \mid D=1, \text{Defiers}] \cdot P(\text{Defiers} \mid D=1) \\
 & \stackrel{\text{(A4)}}{=} 0 \cdot P(\text{Always Takers} \mid D=1) \\
 & + 0 \cdot P(\text{Never Takers} \mid D=1) \\
-& + E[ (Y(1)-Y(0)) \cdot 1 \mid D=1, \text{Compliers}] P(\text{Compliers} \mid D=1) \\
+& + E[ (Y(1)-Y(0)) \cdot 1 \mid D=1, \text{Compliers}] \cdot P(\text{Compliers} \mid D=1) \\
 & + (-1) \cdot \underset{\textstyle=0}{\underbrace{P(\text{Defiers} \mid D=1)}} \\
-& = E[ Y(1)-Y(0) \mid D=1, \text{Compliers}] P(\text{Compliers} \mid D=1) \\
-& = E[ Y(1)-Y(0) \mid D(0)=0, D(1)=1, D=1] P(D(0)=0, D(1)=1 \mid D=1) \\
+& = E[ Y(1)-Y(0) \mid D=1, \text{Compliers}] \cdot P(\text{Compliers} \mid D=1) \\
+& = E[ Y(1)-Y(0) \mid D(0)=0, D(1)=1, D=1] \cdot P(D(0)=0, D(1)=1 \mid D=1) \\
 \end{aligned}
 $$
-
 
 We have show the equivalence of:
 
@@ -101,10 +102,10 @@ Now we show that the denominator can be written as $E[D(1) - D(0) \mid D=1]$:
 $$
 \begin{aligned}
 & E[D(1) - D(0) \mid D=1] \\
-& = E[D(1) - D(0) \mid D=1, \text{Always Takers}] P(\text{Always Takers} \mid D=1) \\
-& + E[D(1) - D(0) \mid D=1, \text{Never Takers}] P(\text{Never Takers} \mid D=1) \\
-& + E[D(1) - D(0) \mid D=1, \text{Compliers}] P(\text{Compliers} \mid D=1) \\
-& + E[D(1) - D(0) \mid D=1, \text{Defiers}] P(\text{Defiers} \mid D=1) \\
+& \stackrel{\text{(LIE)}}{=} E[D(1) - D(0) \mid D=1, \text{Always Takers}] \cdot P(\text{Always Takers} \mid D=1) \\
+& + E[D(1) - D(0) \mid D=1, \text{Never Takers}] \cdot  \underset{\textstyle=0}{\underbrace{P(\text{Never Takers} \mid D=1)}} \\
+& + E[D(1) - D(0) \mid D=1, \text{Compliers}] \cdot P(\text{Compliers} \mid D=1) \\
+& + E[D(1) - D(0) \mid D=1, \text{Defiers}] \cdot P(\text{Defiers} \mid D=1) \\
 & \stackrel{\text{(A4)}}{=} 0 \cdot P(\text{Always Takers} \mid D=1) \\
 & + 0 \cdot P(\text{Never Takers} \mid D=1) \\
 & + 1 \cdot P(\text{Compliers} \mid D=1) \\
@@ -118,9 +119,81 @@ Plugging this back into our previous equation we get:
 
 $$
 E[ Y(1)-Y(0) \mid D(0)=0, D(1)=1, D=1] = \frac{E[ Y(1,D(1)) - Y(0,D(0)) \mid D=1]}{E[D(1) - D(0) \mid D=1]} \quad \blacksquare
-$$ 
+$$
 
 Which we wanted to show.
 
-
 Now we will proceed with the identification of the LATT under the stated assumptions. We start with the numerator:
+
+$$
+\begin{aligned}
+& E[ Y(1,D(1)) - Y(0,D(0)) \mid D=1] \\
+& \stackrel{\text{(A2)}}{=} E[ Y(D(1)) - Y(D(0)) \mid D=1] \\
+& \stackrel{\text{(LIE)}}{=} E[\underset{\textstyle=0}{\underbrace{Y(1) - Y(1)}} \mid D(1) = 1, D(0)=1, D=1] \cdot P(D(1) = 1, D(0)=1 \mid D=1) \\
+& + E[Y(1) - Y(0) \mid D(1) = 1, D(0)=0, D=1] \cdot P(D(1) = 1, D(0)=0 \mid D=1) \\
+& + E[Y(0) - Y(1) \mid D(1) = 0, D(0)=1, D=1] \cdot \underset{\textstyle=0}{\underbrace{P(D(1) = 0, D(0)=1 \mid D=1)}} \\
+& + E[\underset{\textstyle=0}{\underbrace{Y(0) - Y(0)}} \mid D(1) = 0, D(0)=0, D=1] \cdot \underset{\textstyle=0}{\underbrace{P(D(1) = 0, D(0)=0 \mid D=1)}} \\
+& = E[Y(1) - Y(0) \mid D(1) = 1, D(0)=0, D=1] \cdot P(D(1) = 1, D(0)=0 \mid D=1) \\
+\end{aligned}
+$$ We can see that only the effect on compliers remains in the expression above.
+
+If the instrument is randomly assigned and we look only at the compliers, if D=1 this is equivalent to Z=1, and if D=0 this is equivalent to Z=0. Thus we can rewrite the above expression as:
+
+$$
+E[Y(1) - Y(0) \mid D(1) = 1, D(0)=0, D=1] \cdot P(D(1) = 1, D(0)=0 \mid D=1) = E[Y(1) - Y(0) \mid D(1) = 1, D(0)=0, Z=1] \cdot P(D(1) = 1, D(0)=0 \mid D=1)
+$$
+
+Additionally if (A1) hold (Z is randomly assigned and specially independent of potential outcomes and potential treatments), we can drop the conditioning on Z=1:
+
+$$
+E[Y(1) - Y(0) \mid D(1) = 1, D(0)=0, Z=1] = E[Y(1) - Y(0) \mid D(1) = 1, D(0)=0] = \tau_{LATE}
+$$
+
+This is equal to the LATE effect. So, We identified the numerator as a scaled version of the LATE:
+
+$$E[ Y(1,D(1)) - Y(0,D(0)) \mid D=1] = \tau_{LATE} \cdot P(D(1) = 1, D(0)=0 \mid D=1)$$
+
+Now we proceed with the denominator:
+
+We again decompose this using the law of iterated expectations:
+
+$$
+\begin{aligned}
+& E[D(1) - D(0) \mid D=1] \\
+& \stackrel{\text{(LIE)}}{=} E[\underset{\textstyle=0}{\underbrace{1 - 1}} \mid D(1) = 1, D(0)=1, D=1] \cdot P(D(1) = 1, D(0)=1 \mid D=1) \\
+& + E[1 - 0 \mid D(1) = 1, D(0)=0, D=1] \cdot P(D(1) = 1, D(0)=0 \mid D=1) \\
+& + E[0 - 1 \mid D(1) = 0, D(0)=1, D=1] \cdot \underset{\textstyle=0}{\underbrace{P(D(1) = 0, D(0)=1 \mid D=1)}} \\
+& + E[\underset{\textstyle=0}{\underbrace{0 - 0}} \mid D(1) = 0, D(0)=0, D=1] \cdot \underset{\textstyle=0}{\underbrace{P(D(1) = 0, D(0)=0 \mid D=1)}} \\
+& = 1 \cdot P(D(1) = 1, D(0)=0 \mid D=1) \\
+\end{aligned}
+$$
+
+Now we plug the numerator and denominator back into our expression for $\tau_{LATT}$:
+
+$$
+\tau_{LATT} = \frac{\tau_{LATE} \cdot P(D(1) = 1, D(0)=0 \mid D=1)}{P(D(1) = 1, D(0)=0 \mid D=1)} = \tau_{LATE}
+$$
+
+We have shown that under random assignment of Z that the LATT is equal to the LATE.
+
+From the lecture we know the LATE is identified as:
+
+$$
+\tau_{LATE} = \frac{E[Y \mid Z=1] - E[Y \mid Z=0]}{E[D \mid Z=1] - E[D \mid Z=0]} = \tau_{LATT} \quad \blacksquare
+$$
+
+Therefore we have show identification of the LATT.
+
+### 2.3 Influence function derivation
+
+We have shown in the previous section that the LATT can be expressed as a ratio of two ATTs. As we know the Neyman orthogonal score for the ATT, we can use the chain rule to derive an influence function for the LATT.
+
+The Neyman orthogonal score of the ATT is given by:
+
+$$
+\phi_{ATT}(W; \eta) = \underset{\textstyle=\tilde{Y}_{ATT}}{\underbrace{ \frac{W}{e}(Y - m(0,X)) - \frac{1-D}{e(1-e(X))}(Y - m(0,X))}}  - \tau_{ATT} \frac{W}{e}
+$$
+
+With $O=(D,X,Y)$, $\theta = \tau_{ATT}$, $\eta = (m(0,X), e(X), e)^1$ and the two linear score components $\phi_a = \tilde{Y}_{ATT}$ and $\phi_b = (-1)\frac{W}{e}$.
+
+Let's tailor this score function now to the two specific ATTs we have.

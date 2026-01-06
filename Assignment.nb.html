@@ -10,7 +10,7 @@
 
 
 
-<meta name="date" content="2026-01-05" />
+<meta name="date" content="2026-01-06" />
 
 <title>Group Assignment Causal Machine Learning</title>
 
@@ -2878,7 +2878,7 @@ border-radius: 0px;
 
 <h1 class="title toc-ignore">Group Assignment Causal Machine
 Learning</h1>
-<h4 class="date">2026-01-05</h4>
+<h4 class="date">2026-01-06</h4>
 
 </div>
 
@@ -2941,30 +2941,34 @@ D(0) = -1\)</span></li>
 <p>Under our monotonicity assumption (A4) we can rule out defiers.
 Formally this implies that <span class="math inline">\(P(D(1) - D(0) =
 -1 ) = P(Defiers) = P(Defiers \mid D=1) = 0\)</span>.</p>
+<p>Also, when we condition on D = 1, never takers are not included in
+this group, since they never take the treatment regardless of the
+instrument value. Thus, when we condition on D = 1, the only compliance
+types that remain are always takers and compliers. Formally, <span class="math inline">\(P(Never Takers | D=1) = 0\)</span>.</p>
 <p>We can rewite our previous equation using the law of iterated
 expectations and conditioning on the compliance types:</p>
 <p><span class="math display">\[
 \begin{aligned}
 &amp; E[ (Y(1)-Y(0))(D(1)-D(0)) \mid D=1] \\
-&amp; = E[ (Y(1)-Y(0))(D(1)-D(0)) \mid D=1, \text{Always Takers}]
-P(\text{Always Takers} \mid D=1) \\
-&amp; + E[ (Y(1)-Y(0))(D(1)-D(0)) \mid D=1, \text{Never Takers}]
-P(\text{Never Takers} \mid D=1) \\
-&amp; + E[ (Y(1)-Y(0))(D(1)-D(0)) \mid D=1, \text{Compliers}]
+&amp; \stackrel{\text{(LIE)}}{=} E[ (Y(1)-Y(0))(D(1)-D(0)) \mid D=1,
+\text{Always Takers}] \cdot P(\text{Always Takers} \mid D=1) \\
+&amp; + E[ (Y(1)-Y(0))(D(1)-D(0)) \mid D=1, \text{Never Takers}] \cdot
+\underset{\textstyle=0}{\underbrace{P(\text{Never Takers} \mid D=1)}} \\
+&amp; + E[ (Y(1)-Y(0))(D(1)-D(0)) \mid D=1, \text{Compliers}] \cdot
 P(\text{Compliers} \mid D=1) \\
-&amp; + E[ (Y(1)-Y(0))(D(1)-D(0)) \mid D=1, \text{Defiers}]
+&amp; + E[ (Y(1)-Y(0))(D(1)-D(0)) \mid D=1, \text{Defiers}] \cdot
 P(\text{Defiers} \mid D=1) \\
 &amp; \stackrel{\text{(A4)}}{=} 0 \cdot P(\text{Always Takers} \mid D=1)
 \\
 &amp; + 0 \cdot P(\text{Never Takers} \mid D=1) \\
-&amp; + E[ (Y(1)-Y(0)) \cdot 1 \mid D=1, \text{Compliers}]
+&amp; + E[ (Y(1)-Y(0)) \cdot 1 \mid D=1, \text{Compliers}] \cdot
 P(\text{Compliers} \mid D=1) \\
 &amp; + (-1) \cdot \underset{\textstyle=0}{\underbrace{P(\text{Defiers}
 \mid D=1)}} \\
-&amp; = E[ Y(1)-Y(0) \mid D=1, \text{Compliers}] P(\text{Compliers} \mid
-D=1) \\
-&amp; = E[ Y(1)-Y(0) \mid D(0)=0, D(1)=1, D=1] P(D(0)=0, D(1)=1 \mid
-D=1) \\
+&amp; = E[ Y(1)-Y(0) \mid D=1, \text{Compliers}] \cdot
+P(\text{Compliers} \mid D=1) \\
+&amp; = E[ Y(1)-Y(0) \mid D(0)=0, D(1)=1, D=1] \cdot P(D(0)=0, D(1)=1
+\mid D=1) \\
 \end{aligned}
 \]</span></p>
 <p>We have show the equivalence of:</p>
@@ -2981,14 +2985,15 @@ E[ Y(1)-Y(0) \mid D(0)=0, D(1)=1, D=1] = \frac{E[ Y(1,D(1)) - Y(0,D(0))
 <p><span class="math display">\[
 \begin{aligned}
 &amp; E[D(1) - D(0) \mid D=1] \\
-&amp; = E[D(1) - D(0) \mid D=1, \text{Always Takers}] P(\text{Always
-Takers} \mid D=1) \\
-&amp; + E[D(1) - D(0) \mid D=1, \text{Never Takers}] P(\text{Never
-Takers} \mid D=1) \\
-&amp; + E[D(1) - D(0) \mid D=1, \text{Compliers}] P(\text{Compliers}
+&amp; \stackrel{\text{(LIE)}}{=} E[D(1) - D(0) \mid D=1, \text{Always
+Takers}] \cdot P(\text{Always Takers} \mid D=1) \\
+&amp; + E[D(1) - D(0) \mid D=1, \text{Never Takers}]
+\cdot  \underset{\textstyle=0}{\underbrace{P(\text{Never Takers} \mid
+D=1)}} \\
+&amp; + E[D(1) - D(0) \mid D=1, \text{Compliers}] \cdot
+P(\text{Compliers} \mid D=1) \\
+&amp; + E[D(1) - D(0) \mid D=1, \text{Defiers}] \cdot P(\text{Defiers}
 \mid D=1) \\
-&amp; + E[D(1) - D(0) \mid D=1, \text{Defiers}] P(\text{Defiers} \mid
-D=1) \\
 &amp; \stackrel{\text{(A4)}}{=} 0 \cdot P(\text{Always Takers} \mid D=1)
 \\
 &amp; + 0 \cdot P(\text{Never Takers} \mid D=1) \\
@@ -3007,11 +3012,99 @@ E[ Y(1)-Y(0) \mid D(0)=0, D(1)=1, D=1] = \frac{E[ Y(1,D(1)) - Y(0,D(0))
 <p>Which we wanted to show.</p>
 <p>Now we will proceed with the identification of the LATT under the
 stated assumptions. We start with the numerator:</p>
+<p><span class="math display">\[
+\begin{aligned}
+&amp; E[ Y(1,D(1)) - Y(0,D(0)) \mid D=1] \\
+&amp; \stackrel{\text{(A2)}}{=} E[ Y(D(1)) - Y(D(0)) \mid D=1] \\
+&amp; \stackrel{\text{(LIE)}}{=}
+E[\underset{\textstyle=0}{\underbrace{Y(1) - Y(1)}} \mid D(1) = 1,
+D(0)=1, D=1] \cdot P(D(1) = 1, D(0)=1 \mid D=1) \\
+&amp; + E[Y(1) - Y(0) \mid D(1) = 1, D(0)=0, D=1] \cdot P(D(1) = 1,
+D(0)=0 \mid D=1) \\
+&amp; + E[Y(0) - Y(1) \mid D(1) = 0, D(0)=1, D=1] \cdot
+\underset{\textstyle=0}{\underbrace{P(D(1) = 0, D(0)=1 \mid D=1)}} \\
+&amp; + E[\underset{\textstyle=0}{\underbrace{Y(0) - Y(0)}} \mid D(1) =
+0, D(0)=0, D=1] \cdot \underset{\textstyle=0}{\underbrace{P(D(1) = 0,
+D(0)=0 \mid D=1)}} \\
+&amp; = E[Y(1) - Y(0) \mid D(1) = 1, D(0)=0, D=1] \cdot P(D(1) = 1,
+D(0)=0 \mid D=1) \\
+\end{aligned}
+\]</span> We can see that only the effect on compliers remains in the
+expression above.</p>
+<p>If the instrument is randomly assigned and we look only at the
+compliers, if D=1 this is equivalent to Z=1, and if D=0 this is
+equivalent to Z=0. Thus we can rewrite the above expression as:</p>
+<p><span class="math display">\[
+E[Y(1) - Y(0) \mid D(1) = 1, D(0)=0, D=1] \cdot P(D(1) = 1, D(0)=0 \mid
+D=1) = E[Y(1) - Y(0) \mid D(1) = 1, D(0)=0, Z=1] \cdot P(D(1) = 1,
+D(0)=0 \mid D=1)
+\]</span></p>
+<p>Additionally if (A1) hold (Z is randomly assigned and specially
+independent of potential outcomes and potential treatments), we can drop
+the conditioning on Z=1:</p>
+<p><span class="math display">\[
+E[Y(1) - Y(0) \mid D(1) = 1, D(0)=0, Z=1] = E[Y(1) - Y(0) \mid D(1) = 1,
+D(0)=0] = \tau_{LATE}
+\]</span></p>
+<p>This is equal to the LATE effect. So, We identified the numerator as
+a scaled version of the LATE:</p>
+<p><span class="math display">\[E[ Y(1,D(1)) - Y(0,D(0)) \mid D=1] =
+\tau_{LATE} \cdot P(D(1) = 1, D(0)=0 \mid D=1)\]</span></p>
+<p>Now we proceed with the denominator:</p>
+<p>We again decompose this using the law of iterated expectations:</p>
+<p><span class="math display">\[
+\begin{aligned}
+&amp; E[D(1) - D(0) \mid D=1] \\
+&amp; \stackrel{\text{(LIE)}}{=} E[\underset{\textstyle=0}{\underbrace{1
+- 1}} \mid D(1) = 1, D(0)=1, D=1] \cdot P(D(1) = 1, D(0)=1 \mid D=1) \\
+&amp; + E[1 - 0 \mid D(1) = 1, D(0)=0, D=1] \cdot P(D(1) = 1, D(0)=0
+\mid D=1) \\
+&amp; + E[0 - 1 \mid D(1) = 0, D(0)=1, D=1] \cdot
+\underset{\textstyle=0}{\underbrace{P(D(1) = 0, D(0)=1 \mid D=1)}} \\
+&amp; + E[\underset{\textstyle=0}{\underbrace{0 - 0}} \mid D(1) = 0,
+D(0)=0, D=1] \cdot \underset{\textstyle=0}{\underbrace{P(D(1) = 0,
+D(0)=0 \mid D=1)}} \\
+&amp; = 1 \cdot P(D(1) = 1, D(0)=0 \mid D=1) \\
+\end{aligned}
+\]</span></p>
+<p>Now we plug the numerator and denominator back into our expression
+for <span class="math inline">\(\tau_{LATT}\)</span>:</p>
+<p><span class="math display">\[
+\tau_{LATT} = \frac{\tau_{LATE} \cdot P(D(1) = 1, D(0)=0 \mid
+D=1)}{P(D(1) = 1, D(0)=0 \mid D=1)} = \tau_{LATE}
+\]</span></p>
+<p>We have shown that under random assignment of Z that the LATT is
+equal to the LATE.</p>
+<p>From the lecture we know the LATE is identified as:</p>
+<p><span class="math display">\[
+\tau_{LATE} = \frac{E[Y \mid Z=1] - E[Y \mid Z=0]}{E[D \mid Z=1] - E[D
+\mid Z=0]} = \tau_{LATT} \quad \blacksquare
+\]</span></p>
+<p>Therefore we have show identification of the LATT.</p>
+</div>
+</div>
+<div id="influence-function-derivation" class="section level3">
+<h3>2.3 Influence function derivation</h3>
+<p>We have shown in the previous section that the LATT can be expressed
+as a ratio of two ATTs. As we know the Neyman orthogonal score for the
+ATT, we can use the chain rule to derive an influence function for the
+LATT.</p>
+<p>The Neyman orthogonal score of the ATT is given by:</p>
+<p><span class="math display">\[
+\phi_{ATT}(W; \eta) = \underset{\textstyle=\tilde{Y}_{ATT}}{\underbrace{
+\frac{W}{e}(Y - m(0,X)) - \frac{1-D}{e(1-e(X))}(Y - m(0,X))}}  -
+\tau_{ATT} \frac{W}{e}
+\]</span></p>
+<p>With <span class="math inline">\(O=(D,X,Y)\)</span>, <span class="math inline">\(\theta = \tau_{ATT}\)</span>, <span class="math inline">\(\eta = (m(0,X), e(X), e)^1\)</span> and the two
+linear score components <span class="math inline">\(\phi_a =
+\tilde{Y}_{ATT}\)</span> and <span class="math inline">\(\phi_b =
+(-1)\frac{W}{e}\)</span>.</p>
+<p>Let’s tailor this score function now to the two specific ATTs we
+have.</p>
 <!-- rnb-text-end -->
 </div>
-</div>
 
-<div id="rmd-source-code">LS0tDQp0aXRsZTogIkdyb3VwIEFzc2lnbm1lbnQgQ2F1c2FsIE1hY2hpbmUgTGVhcm5pbmciDQphdXRob3JzOiAiRWdvciBUcnVzaGtvdiwgNjY3Mjg3NDsgRG9taW5pYyBQw7ZsdGwsIDY2MTg2NzAiDQpkYXRlOiAiYHIgU3lzLkRhdGUoKWAiDQpvdXRwdXQ6DQogIGh0bWxfbm90ZWJvb2s6DQogICAgdG9jOiB0cnVlDQogICAgdG9jX2Zsb2F0OiB0cnVlDQogICAgY29kZV9mb2xkaW5nOiBzaG93DQotLS0NCg0KIyMjIDIuMSBMaXRlcmF0dXJlIFJldmlldw0KDQouLi4NCg0KIyMjIDIuMiBJZGVudGlmaWNhdGlvbiBvZiBMQVRUL0xBVFUNCg0KIyMjIyBMQVRUDQoNClRvIGlkZW50aWZ5IHRoZSBMQVRUIHdlIHVzZSB0aGUgZm9sbG93aW5nIHN0YW5kYXJkIElWIGFzc3VtcHRpb25zOg0KDQooQTEpIFJhbmRvbSBBc3NpZ25tZW50IG9mIFo6ICRaIFxwZXJwIChZKDEpLCBZKDApLCBEKDEpLCBEKDApKSQNCg0KKEEyKSBFeGNsdXNpb24gUmVzdHJpY3Rpb246ICRZKGQsIHopID0gWShkKSQgZm9yIGFsbCAkZCwgeiQNCg0KVGhpcyBhbHNvIGltcGxpZXM6DQoNClwkXCQNCg0KWShEKDEpKSA9IFkoMSlEKDEpICsgWSgwKSgxLUQoMSkpIFxcDQoNClkoRCgwKSkgPSBZKDEpRCgwKSArIFkoMCkoMS1EKDApKQ0KDQpcJFwkDQoNCihBMykgUmVsZXZhbmNlOiAkRVtEKDEpXSBcbmVxIEVbRCgwKV0kDQoNCkFkZGl0aW9uYWxseSB3ZSBpbXBvc2UgdGhlIGFzc3VtcHRpb24gb2YgbW9ub3RvbmljaXR5IGFuZCBydWxlIG91dCBkZWZpZXJzOg0KDQooQTQpIE1vbm90b25pY2l0eTogJFAoRCgxKSBcZ2VxIEQoMCkpID0gMSQNCg0KRmlyc3Qgd2UgbmVlZCB0byBzaG93LCB0aGF0ICRcdGF1X3tMQVRUfSQgdGhhdCBpcyBkZWZpbmVkIGFzICRcdGF1X3tMQVRUfSA9IEVbWSgxKS1ZKDApIFxtaWQgRCgwKT0wLCBEKDEpPTEsIEQ9MV0kIGNhbiBiZSB3cml0dGVuIGFzIHRoZSByYXRpbyBvZiB0aGUgQVRUIG9mIHRoZSBpbnN0cnVtZW50IG9uIHRoZSBvdXRjb21lIGFuZCB0aGUgQVRUIG9mIHRoZSBpbnN0cnVtZW50IG9uIHRoZSB0cmVhdG1lbnQ6DQoNCiQkXHRhdV97TEFUVH0gPSBcZnJhY3tFWyBZKDEsRCgxKSkgLSBZKDAsRCgwKSkgXG1pZCBEPTFdfSB7RVtEKDEpIC0gRCgwKSBcbWlkIEQ9MV19JCQNCg0KV2Ugc3RhcnQgdGhpcyBwcm9vZiB3aXRoIHRoZSBudW1lcmF0b3Igb2YgdGhlIHNlY29uZCB0ZXJtOg0KDQokJA0KXGJlZ2lue2FsaWduZWR9DQomIEVbIFkoMSxEKDEpKSAtIFkoMCxEKDApKSBcbWlkIEQ9MV0gXFwNCiYgXHN0YWNrcmVse1x0ZXh0eyhBMil9fXs9fSBFWyBZKEQoMSkpIC0gWShEKDApKSBcbWlkIEQ9MV0gXFwNCiYgPSBFWyBZKDEpRCgxKSArIFkoMCkoMS1EKDEpKSAtIChZKDEpRCgwKSArIFkoMCkoMS1EKDApKSkgXG1pZCBEPTFdIFxcDQomPSBFW1koMSlEKDEpICsgWSgwKSAtIFkoMClEKDEpIC0gWSgxKUQoMCkgLSBZKDApICsgWSgwKUQoMCkgXG1pZCBEPTFdIFxcDQomID0gRVsgWSgxKShEKDEpLUQoMCkpICsgWSgwKShEKDApLUQoMSkpIFxtaWQgRD0xXSBcXA0KJiA9IEVbIChZKDEpLVkoMCkpKEQoMSktRCgwKSkgXG1pZCBEPTFdIFxcDQpcZW5ke2FsaWduZWR9DQokJA0KDQpXZSBjYW4gZGl2aWRlIHRoaXMgYmFzZWQgb24gZm91ciBkaWZmZWVyZW50IGNvbXBsaWFuY2UgdHlwZXM6DQoNCjEuICBBbHdheXMgVGFrZXJzOiAkRCgxKT0xLCBEKDApPTEgXGltcGxpZXMgRCgxKSAtIEQoMCkgPSAwJA0KMi4gIE5ldmVyIFRha2VyczogJEQoMSk9MCwgRCgwKT0wIFxpbXBsaWVzIEQoMSkgLSBEKDApID0gMCQNCjMuICBDb21wbGllcnM6ICREKDEpPTEsIEQoMCk9MCBcaW1wbGllcyBEKDEpIC0gRCgwKSA9IDEkDQo0LiAgRGVmaWVyczogJEQoMSk9MCwgRCgwKT0xIFxpbXBsaWVzIEQoMSkgLSBEKDApID0gLTEkDQoNClVuZGVyIG91ciBtb25vdG9uaWNpdHkgYXNzdW1wdGlvbiAoQTQpIHdlIGNhbiBydWxlIG91dCBkZWZpZXJzLiBGb3JtYWxseSB0aGlzIGltcGxpZXMgdGhhdCAkUChEKDEpIC0gRCgwKSA9IC0xICkgPSBQKERlZmllcnMpID0gUChEZWZpZXJzIFxtaWQgRD0xKSA9IDAkLg0KDQpXZSBjYW4gcmV3aXRlIG91ciBwcmV2aW91cyBlcXVhdGlvbiB1c2luZyB0aGUgbGF3IG9mIGl0ZXJhdGVkIGV4cGVjdGF0aW9ucyBhbmQgY29uZGl0aW9uaW5nIG9uIHRoZSBjb21wbGlhbmNlIHR5cGVzOg0KDQokJA0KXGJlZ2lue2FsaWduZWR9DQomIEVbIChZKDEpLVkoMCkpKEQoMSktRCgwKSkgXG1pZCBEPTFdIFxcDQomID0gRVsgKFkoMSktWSgwKSkoRCgxKS1EKDApKSBcbWlkIEQ9MSwgXHRleHR7QWx3YXlzIFRha2Vyc31dIFAoXHRleHR7QWx3YXlzIFRha2Vyc30gXG1pZCBEPTEpIFxcDQomICsgRVsgKFkoMSktWSgwKSkoRCgxKS1EKDApKSBcbWlkIEQ9MSwgXHRleHR7TmV2ZXIgVGFrZXJzfV0gUChcdGV4dHtOZXZlciBUYWtlcnN9IFxtaWQgRD0xKSBcXA0KJiArIEVbIChZKDEpLVkoMCkpKEQoMSktRCgwKSkgXG1pZCBEPTEsIFx0ZXh0e0NvbXBsaWVyc31dIFAoXHRleHR7Q29tcGxpZXJzfSBcbWlkIEQ9MSkgXFwNCiYgKyBFWyAoWSgxKS1ZKDApKShEKDEpLUQoMCkpIFxtaWQgRD0xLCBcdGV4dHtEZWZpZXJzfV0gUChcdGV4dHtEZWZpZXJzfSBcbWlkIEQ9MSkgXFwNCiYgXHN0YWNrcmVse1x0ZXh0eyhBNCl9fXs9fSAwIFxjZG90IFAoXHRleHR7QWx3YXlzIFRha2Vyc30gXG1pZCBEPTEpIFxcDQomICsgMCBcY2RvdCBQKFx0ZXh0e05ldmVyIFRha2Vyc30gXG1pZCBEPTEpIFxcDQomICsgRVsgKFkoMSktWSgwKSkgXGNkb3QgMSBcbWlkIEQ9MSwgXHRleHR7Q29tcGxpZXJzfV0gUChcdGV4dHtDb21wbGllcnN9IFxtaWQgRD0xKSBcXA0KJiArICgtMSkgXGNkb3QgXHVuZGVyc2V0e1x0ZXh0c3R5bGU9MH17XHVuZGVyYnJhY2V7UChcdGV4dHtEZWZpZXJzfSBcbWlkIEQ9MSl9fSBcXA0KJiA9IEVbIFkoMSktWSgwKSBcbWlkIEQ9MSwgXHRleHR7Q29tcGxpZXJzfV0gUChcdGV4dHtDb21wbGllcnN9IFxtaWQgRD0xKSBcXA0KJiA9IEVbIFkoMSktWSgwKSBcbWlkIEQoMCk9MCwgRCgxKT0xLCBEPTFdIFAoRCgwKT0wLCBEKDEpPTEgXG1pZCBEPTEpIFxcDQpcZW5ke2FsaWduZWR9DQokJA0KDQoNCldlIGhhdmUgc2hvdyB0aGUgZXF1aXZhbGVuY2Ugb2Y6DQoNCiQkDQpFWyBZKDEsRCgxKSkgLSBZKDAsRCgwKSkgXG1pZCBEPTFdID0gRVsgWSgxKS1ZKDApIFxtaWQgRCgwKT0wLCBEKDEpPTEsIEQ9MV0gUChEKDApPTAsIEQoMSk9MSBcbWlkIEQ9MSkNCiQkDQoNCk5vdyB3ZSBjYW4gcmVhcnJhbmdlIHRoaXMgdG8gZXhwcmVzcyAkXHRhdV97TEFUVH0kOg0KDQokJA0KRVsgWSgxKS1ZKDApIFxtaWQgRCgwKT0wLCBEKDEpPTEsIEQ9MV0gPSBcZnJhY3tFWyBZKDEsRCgxKSkgLSBZKDAsRCgwKSkgXG1pZCBEPTFdfXtQKEQoMCk9MCwgRCgxKT0xIFxtaWQgRD0xKX0NCiQkDQoNCk5vdyB3ZSBzaG93IHRoYXQgdGhlIGRlbm9taW5hdG9yIGNhbiBiZSB3cml0dGVuIGFzICRFW0QoMSkgLSBEKDApIFxtaWQgRD0xXSQ6DQoNCiQkDQpcYmVnaW57YWxpZ25lZH0NCiYgRVtEKDEpIC0gRCgwKSBcbWlkIEQ9MV0gXFwNCiYgPSBFW0QoMSkgLSBEKDApIFxtaWQgRD0xLCBcdGV4dHtBbHdheXMgVGFrZXJzfV0gUChcdGV4dHtBbHdheXMgVGFrZXJzfSBcbWlkIEQ9MSkgXFwNCiYgKyBFW0QoMSkgLSBEKDApIFxtaWQgRD0xLCBcdGV4dHtOZXZlciBUYWtlcnN9XSBQKFx0ZXh0e05ldmVyIFRha2Vyc30gXG1pZCBEPTEpIFxcDQomICsgRVtEKDEpIC0gRCgwKSBcbWlkIEQ9MSwgXHRleHR7Q29tcGxpZXJzfV0gUChcdGV4dHtDb21wbGllcnN9IFxtaWQgRD0xKSBcXA0KJiArIEVbRCgxKSAtIEQoMCkgXG1pZCBEPTEsIFx0ZXh0e0RlZmllcnN9XSBQKFx0ZXh0e0RlZmllcnN9IFxtaWQgRD0xKSBcXA0KJiBcc3RhY2tyZWx7XHRleHR7KEE0KX19ez19IDAgXGNkb3QgUChcdGV4dHtBbHdheXMgVGFrZXJzfSBcbWlkIEQ9MSkgXFwNCiYgKyAwIFxjZG90IFAoXHRleHR7TmV2ZXIgVGFrZXJzfSBcbWlkIEQ9MSkgXFwNCiYgKyAxIFxjZG90IFAoXHRleHR7Q29tcGxpZXJzfSBcbWlkIEQ9MSkgXFwNCiYgKyAoLTEpIFxjZG90IFx1bmRlcnNldHtcdGV4dHN0eWxlPTB9e1x1bmRlcmJyYWNle1AoXHRleHR7RGVmaWVyc30gXG1pZCBEPTEpfX0gXFwNCiYgPSBQKFx0ZXh0e0NvbXBsaWVyc30gXG1pZCBEPTEpIFxcDQomID0gUChEKDApPTAsIEQoMSk9MSBcbWlkIEQ9MSkgXFwNClxlbmR7YWxpZ25lZH0NCiQkDQoNClBsdWdnaW5nIHRoaXMgYmFjayBpbnRvIG91ciBwcmV2aW91cyBlcXVhdGlvbiB3ZSBnZXQ6DQoNCiQkDQpFWyBZKDEpLVkoMCkgXG1pZCBEKDApPTAsIEQoMSk9MSwgRD0xXSA9IFxmcmFje0VbIFkoMSxEKDEpKSAtIFkoMCxEKDApKSBcbWlkIEQ9MV19e0VbRCgxKSAtIEQoMCkgXG1pZCBEPTFdfSBccXVhZCBcYmxhY2tzcXVhcmUNCiQkIA0KDQpXaGljaCB3ZSB3YW50ZWQgdG8gc2hvdy4NCg0KDQpOb3cgd2Ugd2lsbCBwcm9jZWVkIHdpdGggdGhlIGlkZW50aWZpY2F0aW9uIG9mIHRoZSBMQVRUIHVuZGVyIHRoZSBzdGF0ZWQgYXNzdW1wdGlvbnMuIFdlIHN0YXJ0IHdpdGggdGhlIG51bWVyYXRvcjo=</div>
+<div id="rmd-source-code">LS0tDQp0aXRsZTogIkdyb3VwIEFzc2lnbm1lbnQgQ2F1c2FsIE1hY2hpbmUgTGVhcm5pbmciDQphdXRob3JzOiAiRWdvciBUcnVzaGtvdiwgNjY3Mjg3NDsgRG9taW5pYyBQw7ZsdGwsIDY2MTg2NzAiDQpkYXRlOiAiYHIgU3lzLkRhdGUoKWAiDQpvdXRwdXQ6DQogIGh0bWxfbm90ZWJvb2s6DQogICAgdG9jOiB0cnVlDQogICAgdG9jX2Zsb2F0OiB0cnVlDQogICAgY29kZV9mb2xkaW5nOiBzaG93DQotLS0NCg0KIyMjIDIuMSBMaXRlcmF0dXJlIFJldmlldw0KDQouLi4NCg0KIyMjIDIuMiBJZGVudGlmaWNhdGlvbiBvZiBMQVRUL0xBVFUNCg0KIyMjIyBMQVRUDQoNClRvIGlkZW50aWZ5IHRoZSBMQVRUIHdlIHVzZSB0aGUgZm9sbG93aW5nIHN0YW5kYXJkIElWIGFzc3VtcHRpb25zOg0KDQooQTEpIFJhbmRvbSBBc3NpZ25tZW50IG9mIFo6ICRaIFxwZXJwIChZKDEpLCBZKDApLCBEKDEpLCBEKDApKSQNCg0KKEEyKSBFeGNsdXNpb24gUmVzdHJpY3Rpb246ICRZKGQsIHopID0gWShkKSQgZm9yIGFsbCAkZCwgeiQNCg0KVGhpcyBhbHNvIGltcGxpZXM6DQoNClwkXCQNCg0KWShEKDEpKSA9IFkoMSlEKDEpICsgWSgwKSgxLUQoMSkpIFxcDQoNClkoRCgwKSkgPSBZKDEpRCgwKSArIFkoMCkoMS1EKDApKQ0KDQpcJFwkDQoNCihBMykgUmVsZXZhbmNlOiAkRVtEKDEpXSBcbmVxIEVbRCgwKV0kDQoNCkFkZGl0aW9uYWxseSB3ZSBpbXBvc2UgdGhlIGFzc3VtcHRpb24gb2YgbW9ub3RvbmljaXR5IGFuZCBydWxlIG91dCBkZWZpZXJzOg0KDQooQTQpIE1vbm90b25pY2l0eTogJFAoRCgxKSBcZ2VxIEQoMCkpID0gMSQNCg0KRmlyc3Qgd2UgbmVlZCB0byBzaG93LCB0aGF0ICRcdGF1X3tMQVRUfSQgdGhhdCBpcyBkZWZpbmVkIGFzICRcdGF1X3tMQVRUfSA9IEVbWSgxKS1ZKDApIFxtaWQgRCgwKT0wLCBEKDEpPTEsIEQ9MV0kIGNhbiBiZSB3cml0dGVuIGFzIHRoZSByYXRpbyBvZiB0aGUgQVRUIG9mIHRoZSBpbnN0cnVtZW50IG9uIHRoZSBvdXRjb21lIGFuZCB0aGUgQVRUIG9mIHRoZSBpbnN0cnVtZW50IG9uIHRoZSB0cmVhdG1lbnQ6DQoNCiQkXHRhdV97TEFUVH0gPSBcZnJhY3tFWyBZKDEsRCgxKSkgLSBZKDAsRCgwKSkgXG1pZCBEPTFdfSB7RVtEKDEpIC0gRCgwKSBcbWlkIEQ9MV19JCQNCg0KV2Ugc3RhcnQgdGhpcyBwcm9vZiB3aXRoIHRoZSBudW1lcmF0b3Igb2YgdGhlIHNlY29uZCB0ZXJtOg0KDQokJA0KXGJlZ2lue2FsaWduZWR9DQomIEVbIFkoMSxEKDEpKSAtIFkoMCxEKDApKSBcbWlkIEQ9MV0gXFwNCiYgXHN0YWNrcmVse1x0ZXh0eyhBMil9fXs9fSBFWyBZKEQoMSkpIC0gWShEKDApKSBcbWlkIEQ9MV0gXFwNCiYgPSBFWyBZKDEpRCgxKSArIFkoMCkoMS1EKDEpKSAtIChZKDEpRCgwKSArIFkoMCkoMS1EKDApKSkgXG1pZCBEPTFdIFxcDQomPSBFW1koMSlEKDEpICsgWSgwKSAtIFkoMClEKDEpIC0gWSgxKUQoMCkgLSBZKDApICsgWSgwKUQoMCkgXG1pZCBEPTFdIFxcDQomID0gRVsgWSgxKShEKDEpLUQoMCkpICsgWSgwKShEKDApLUQoMSkpIFxtaWQgRD0xXSBcXA0KJiA9IEVbIChZKDEpLVkoMCkpKEQoMSktRCgwKSkgXG1pZCBEPTFdIFxcDQpcZW5ke2FsaWduZWR9DQokJA0KDQpXZSBjYW4gZGl2aWRlIHRoaXMgYmFzZWQgb24gZm91ciBkaWZmZWVyZW50IGNvbXBsaWFuY2UgdHlwZXM6DQoNCjEuICBBbHdheXMgVGFrZXJzOiAkRCgxKT0xLCBEKDApPTEgXGltcGxpZXMgRCgxKSAtIEQoMCkgPSAwJA0KMi4gIE5ldmVyIFRha2VyczogJEQoMSk9MCwgRCgwKT0wIFxpbXBsaWVzIEQoMSkgLSBEKDApID0gMCQNCjMuICBDb21wbGllcnM6ICREKDEpPTEsIEQoMCk9MCBcaW1wbGllcyBEKDEpIC0gRCgwKSA9IDEkDQo0LiAgRGVmaWVyczogJEQoMSk9MCwgRCgwKT0xIFxpbXBsaWVzIEQoMSkgLSBEKDApID0gLTEkDQoNClVuZGVyIG91ciBtb25vdG9uaWNpdHkgYXNzdW1wdGlvbiAoQTQpIHdlIGNhbiBydWxlIG91dCBkZWZpZXJzLiBGb3JtYWxseSB0aGlzIGltcGxpZXMgdGhhdCAkUChEKDEpIC0gRCgwKSA9IC0xICkgPSBQKERlZmllcnMpID0gUChEZWZpZXJzIFxtaWQgRD0xKSA9IDAkLg0KDQpBbHNvLCB3aGVuIHdlIGNvbmRpdGlvbiBvbiBEID0gMSwgbmV2ZXIgdGFrZXJzIGFyZSBub3QgaW5jbHVkZWQgaW4gdGhpcyBncm91cCwgc2luY2UgdGhleSBuZXZlciB0YWtlIHRoZSB0cmVhdG1lbnQgcmVnYXJkbGVzcyBvZiB0aGUgaW5zdHJ1bWVudCB2YWx1ZS4gVGh1cywgd2hlbiB3ZSBjb25kaXRpb24gb24gRCA9IDEsIHRoZSBvbmx5IGNvbXBsaWFuY2UgdHlwZXMgdGhhdCByZW1haW4gYXJlIGFsd2F5cyB0YWtlcnMgYW5kIGNvbXBsaWVycy4gRm9ybWFsbHksICRQKE5ldmVyIFRha2VycyB8IEQ9MSkgPSAwJC4NCg0KV2UgY2FuIHJld2l0ZSBvdXIgcHJldmlvdXMgZXF1YXRpb24gdXNpbmcgdGhlIGxhdyBvZiBpdGVyYXRlZCBleHBlY3RhdGlvbnMgYW5kIGNvbmRpdGlvbmluZyBvbiB0aGUgY29tcGxpYW5jZSB0eXBlczoNCg0KJCQNClxiZWdpbnthbGlnbmVkfQ0KJiBFWyAoWSgxKS1ZKDApKShEKDEpLUQoMCkpIFxtaWQgRD0xXSBcXA0KJiBcc3RhY2tyZWx7XHRleHR7KExJRSl9fXs9fSBFWyAoWSgxKS1ZKDApKShEKDEpLUQoMCkpIFxtaWQgRD0xLCBcdGV4dHtBbHdheXMgVGFrZXJzfV0gXGNkb3QgUChcdGV4dHtBbHdheXMgVGFrZXJzfSBcbWlkIEQ9MSkgXFwNCiYgKyBFWyAoWSgxKS1ZKDApKShEKDEpLUQoMCkpIFxtaWQgRD0xLCBcdGV4dHtOZXZlciBUYWtlcnN9XSBcY2RvdCBcdW5kZXJzZXR7XHRleHRzdHlsZT0wfXtcdW5kZXJicmFjZXtQKFx0ZXh0e05ldmVyIFRha2Vyc30gXG1pZCBEPTEpfX0gXFwNCiYgKyBFWyAoWSgxKS1ZKDApKShEKDEpLUQoMCkpIFxtaWQgRD0xLCBcdGV4dHtDb21wbGllcnN9XSBcY2RvdCBQKFx0ZXh0e0NvbXBsaWVyc30gXG1pZCBEPTEpIFxcDQomICsgRVsgKFkoMSktWSgwKSkoRCgxKS1EKDApKSBcbWlkIEQ9MSwgXHRleHR7RGVmaWVyc31dIFxjZG90IFAoXHRleHR7RGVmaWVyc30gXG1pZCBEPTEpIFxcDQomIFxzdGFja3JlbHtcdGV4dHsoQTQpfX17PX0gMCBcY2RvdCBQKFx0ZXh0e0Fsd2F5cyBUYWtlcnN9IFxtaWQgRD0xKSBcXA0KJiArIDAgXGNkb3QgUChcdGV4dHtOZXZlciBUYWtlcnN9IFxtaWQgRD0xKSBcXA0KJiArIEVbIChZKDEpLVkoMCkpIFxjZG90IDEgXG1pZCBEPTEsIFx0ZXh0e0NvbXBsaWVyc31dIFxjZG90IFAoXHRleHR7Q29tcGxpZXJzfSBcbWlkIEQ9MSkgXFwNCiYgKyAoLTEpIFxjZG90IFx1bmRlcnNldHtcdGV4dHN0eWxlPTB9e1x1bmRlcmJyYWNle1AoXHRleHR7RGVmaWVyc30gXG1pZCBEPTEpfX0gXFwNCiYgPSBFWyBZKDEpLVkoMCkgXG1pZCBEPTEsIFx0ZXh0e0NvbXBsaWVyc31dIFxjZG90IFAoXHRleHR7Q29tcGxpZXJzfSBcbWlkIEQ9MSkgXFwNCiYgPSBFWyBZKDEpLVkoMCkgXG1pZCBEKDApPTAsIEQoMSk9MSwgRD0xXSBcY2RvdCBQKEQoMCk9MCwgRCgxKT0xIFxtaWQgRD0xKSBcXA0KXGVuZHthbGlnbmVkfQ0KJCQNCg0KV2UgaGF2ZSBzaG93IHRoZSBlcXVpdmFsZW5jZSBvZjoNCg0KJCQNCkVbIFkoMSxEKDEpKSAtIFkoMCxEKDApKSBcbWlkIEQ9MV0gPSBFWyBZKDEpLVkoMCkgXG1pZCBEKDApPTAsIEQoMSk9MSwgRD0xXSBQKEQoMCk9MCwgRCgxKT0xIFxtaWQgRD0xKQ0KJCQNCg0KTm93IHdlIGNhbiByZWFycmFuZ2UgdGhpcyB0byBleHByZXNzICRcdGF1X3tMQVRUfSQ6DQoNCiQkDQpFWyBZKDEpLVkoMCkgXG1pZCBEKDApPTAsIEQoMSk9MSwgRD0xXSA9IFxmcmFje0VbIFkoMSxEKDEpKSAtIFkoMCxEKDApKSBcbWlkIEQ9MV19e1AoRCgwKT0wLCBEKDEpPTEgXG1pZCBEPTEpfQ0KJCQNCg0KTm93IHdlIHNob3cgdGhhdCB0aGUgZGVub21pbmF0b3IgY2FuIGJlIHdyaXR0ZW4gYXMgJEVbRCgxKSAtIEQoMCkgXG1pZCBEPTFdJDoNCg0KJCQNClxiZWdpbnthbGlnbmVkfQ0KJiBFW0QoMSkgLSBEKDApIFxtaWQgRD0xXSBcXA0KJiBcc3RhY2tyZWx7XHRleHR7KExJRSl9fXs9fSBFW0QoMSkgLSBEKDApIFxtaWQgRD0xLCBcdGV4dHtBbHdheXMgVGFrZXJzfV0gXGNkb3QgUChcdGV4dHtBbHdheXMgVGFrZXJzfSBcbWlkIEQ9MSkgXFwNCiYgKyBFW0QoMSkgLSBEKDApIFxtaWQgRD0xLCBcdGV4dHtOZXZlciBUYWtlcnN9XSBcY2RvdCAgXHVuZGVyc2V0e1x0ZXh0c3R5bGU9MH17XHVuZGVyYnJhY2V7UChcdGV4dHtOZXZlciBUYWtlcnN9IFxtaWQgRD0xKX19IFxcDQomICsgRVtEKDEpIC0gRCgwKSBcbWlkIEQ9MSwgXHRleHR7Q29tcGxpZXJzfV0gXGNkb3QgUChcdGV4dHtDb21wbGllcnN9IFxtaWQgRD0xKSBcXA0KJiArIEVbRCgxKSAtIEQoMCkgXG1pZCBEPTEsIFx0ZXh0e0RlZmllcnN9XSBcY2RvdCBQKFx0ZXh0e0RlZmllcnN9IFxtaWQgRD0xKSBcXA0KJiBcc3RhY2tyZWx7XHRleHR7KEE0KX19ez19IDAgXGNkb3QgUChcdGV4dHtBbHdheXMgVGFrZXJzfSBcbWlkIEQ9MSkgXFwNCiYgKyAwIFxjZG90IFAoXHRleHR7TmV2ZXIgVGFrZXJzfSBcbWlkIEQ9MSkgXFwNCiYgKyAxIFxjZG90IFAoXHRleHR7Q29tcGxpZXJzfSBcbWlkIEQ9MSkgXFwNCiYgKyAoLTEpIFxjZG90IFx1bmRlcnNldHtcdGV4dHN0eWxlPTB9e1x1bmRlcmJyYWNle1AoXHRleHR7RGVmaWVyc30gXG1pZCBEPTEpfX0gXFwNCiYgPSBQKFx0ZXh0e0NvbXBsaWVyc30gXG1pZCBEPTEpIFxcDQomID0gUChEKDApPTAsIEQoMSk9MSBcbWlkIEQ9MSkgXFwNClxlbmR7YWxpZ25lZH0NCiQkDQoNClBsdWdnaW5nIHRoaXMgYmFjayBpbnRvIG91ciBwcmV2aW91cyBlcXVhdGlvbiB3ZSBnZXQ6DQoNCiQkDQpFWyBZKDEpLVkoMCkgXG1pZCBEKDApPTAsIEQoMSk9MSwgRD0xXSA9IFxmcmFje0VbIFkoMSxEKDEpKSAtIFkoMCxEKDApKSBcbWlkIEQ9MV19e0VbRCgxKSAtIEQoMCkgXG1pZCBEPTFdfSBccXVhZCBcYmxhY2tzcXVhcmUNCiQkDQoNCldoaWNoIHdlIHdhbnRlZCB0byBzaG93Lg0KDQpOb3cgd2Ugd2lsbCBwcm9jZWVkIHdpdGggdGhlIGlkZW50aWZpY2F0aW9uIG9mIHRoZSBMQVRUIHVuZGVyIHRoZSBzdGF0ZWQgYXNzdW1wdGlvbnMuIFdlIHN0YXJ0IHdpdGggdGhlIG51bWVyYXRvcjoNCg0KJCQNClxiZWdpbnthbGlnbmVkfQ0KJiBFWyBZKDEsRCgxKSkgLSBZKDAsRCgwKSkgXG1pZCBEPTFdIFxcDQomIFxzdGFja3JlbHtcdGV4dHsoQTIpfX17PX0gRVsgWShEKDEpKSAtIFkoRCgwKSkgXG1pZCBEPTFdIFxcDQomIFxzdGFja3JlbHtcdGV4dHsoTElFKX19ez19IEVbXHVuZGVyc2V0e1x0ZXh0c3R5bGU9MH17XHVuZGVyYnJhY2V7WSgxKSAtIFkoMSl9fSBcbWlkIEQoMSkgPSAxLCBEKDApPTEsIEQ9MV0gXGNkb3QgUChEKDEpID0gMSwgRCgwKT0xIFxtaWQgRD0xKSBcXA0KJiArIEVbWSgxKSAtIFkoMCkgXG1pZCBEKDEpID0gMSwgRCgwKT0wLCBEPTFdIFxjZG90IFAoRCgxKSA9IDEsIEQoMCk9MCBcbWlkIEQ9MSkgXFwNCiYgKyBFW1koMCkgLSBZKDEpIFxtaWQgRCgxKSA9IDAsIEQoMCk9MSwgRD0xXSBcY2RvdCBcdW5kZXJzZXR7XHRleHRzdHlsZT0wfXtcdW5kZXJicmFjZXtQKEQoMSkgPSAwLCBEKDApPTEgXG1pZCBEPTEpfX0gXFwNCiYgKyBFW1x1bmRlcnNldHtcdGV4dHN0eWxlPTB9e1x1bmRlcmJyYWNle1koMCkgLSBZKDApfX0gXG1pZCBEKDEpID0gMCwgRCgwKT0wLCBEPTFdIFxjZG90IFx1bmRlcnNldHtcdGV4dHN0eWxlPTB9e1x1bmRlcmJyYWNle1AoRCgxKSA9IDAsIEQoMCk9MCBcbWlkIEQ9MSl9fSBcXA0KJiA9IEVbWSgxKSAtIFkoMCkgXG1pZCBEKDEpID0gMSwgRCgwKT0wLCBEPTFdIFxjZG90IFAoRCgxKSA9IDEsIEQoMCk9MCBcbWlkIEQ9MSkgXFwNClxlbmR7YWxpZ25lZH0NCiQkIFdlIGNhbiBzZWUgdGhhdCBvbmx5IHRoZSBlZmZlY3Qgb24gY29tcGxpZXJzIHJlbWFpbnMgaW4gdGhlIGV4cHJlc3Npb24gYWJvdmUuDQoNCklmIHRoZSBpbnN0cnVtZW50IGlzIHJhbmRvbWx5IGFzc2lnbmVkIGFuZCB3ZSBsb29rIG9ubHkgYXQgdGhlIGNvbXBsaWVycywgaWYgRD0xIHRoaXMgaXMgZXF1aXZhbGVudCB0byBaPTEsIGFuZCBpZiBEPTAgdGhpcyBpcyBlcXVpdmFsZW50IHRvIFo9MC4gVGh1cyB3ZSBjYW4gcmV3cml0ZSB0aGUgYWJvdmUgZXhwcmVzc2lvbiBhczoNCg0KJCQNCkVbWSgxKSAtIFkoMCkgXG1pZCBEKDEpID0gMSwgRCgwKT0wLCBEPTFdIFxjZG90IFAoRCgxKSA9IDEsIEQoMCk9MCBcbWlkIEQ9MSkgPSBFW1koMSkgLSBZKDApIFxtaWQgRCgxKSA9IDEsIEQoMCk9MCwgWj0xXSBcY2RvdCBQKEQoMSkgPSAxLCBEKDApPTAgXG1pZCBEPTEpDQokJA0KDQpBZGRpdGlvbmFsbHkgaWYgKEExKSBob2xkIChaIGlzIHJhbmRvbWx5IGFzc2lnbmVkIGFuZCBzcGVjaWFsbHkgaW5kZXBlbmRlbnQgb2YgcG90ZW50aWFsIG91dGNvbWVzIGFuZCBwb3RlbnRpYWwgdHJlYXRtZW50cyksIHdlIGNhbiBkcm9wIHRoZSBjb25kaXRpb25pbmcgb24gWj0xOg0KDQokJA0KRVtZKDEpIC0gWSgwKSBcbWlkIEQoMSkgPSAxLCBEKDApPTAsIFo9MV0gPSBFW1koMSkgLSBZKDApIFxtaWQgRCgxKSA9IDEsIEQoMCk9MF0gPSBcdGF1X3tMQVRFfQ0KJCQNCg0KVGhpcyBpcyBlcXVhbCB0byB0aGUgTEFURSBlZmZlY3QuIFNvLCBXZSBpZGVudGlmaWVkIHRoZSBudW1lcmF0b3IgYXMgYSBzY2FsZWQgdmVyc2lvbiBvZiB0aGUgTEFURToNCg0KJCRFWyBZKDEsRCgxKSkgLSBZKDAsRCgwKSkgXG1pZCBEPTFdID0gXHRhdV97TEFURX0gXGNkb3QgUChEKDEpID0gMSwgRCgwKT0wIFxtaWQgRD0xKSQkDQoNCk5vdyB3ZSBwcm9jZWVkIHdpdGggdGhlIGRlbm9taW5hdG9yOg0KDQpXZSBhZ2FpbiBkZWNvbXBvc2UgdGhpcyB1c2luZyB0aGUgbGF3IG9mIGl0ZXJhdGVkIGV4cGVjdGF0aW9uczoNCg0KJCQNClxiZWdpbnthbGlnbmVkfQ0KJiBFW0QoMSkgLSBEKDApIFxtaWQgRD0xXSBcXA0KJiBcc3RhY2tyZWx7XHRleHR7KExJRSl9fXs9fSBFW1x1bmRlcnNldHtcdGV4dHN0eWxlPTB9e1x1bmRlcmJyYWNlezEgLSAxfX0gXG1pZCBEKDEpID0gMSwgRCgwKT0xLCBEPTFdIFxjZG90IFAoRCgxKSA9IDEsIEQoMCk9MSBcbWlkIEQ9MSkgXFwNCiYgKyBFWzEgLSAwIFxtaWQgRCgxKSA9IDEsIEQoMCk9MCwgRD0xXSBcY2RvdCBQKEQoMSkgPSAxLCBEKDApPTAgXG1pZCBEPTEpIFxcDQomICsgRVswIC0gMSBcbWlkIEQoMSkgPSAwLCBEKDApPTEsIEQ9MV0gXGNkb3QgXHVuZGVyc2V0e1x0ZXh0c3R5bGU9MH17XHVuZGVyYnJhY2V7UChEKDEpID0gMCwgRCgwKT0xIFxtaWQgRD0xKX19IFxcDQomICsgRVtcdW5kZXJzZXR7XHRleHRzdHlsZT0wfXtcdW5kZXJicmFjZXswIC0gMH19IFxtaWQgRCgxKSA9IDAsIEQoMCk9MCwgRD0xXSBcY2RvdCBcdW5kZXJzZXR7XHRleHRzdHlsZT0wfXtcdW5kZXJicmFjZXtQKEQoMSkgPSAwLCBEKDApPTAgXG1pZCBEPTEpfX0gXFwNCiYgPSAxIFxjZG90IFAoRCgxKSA9IDEsIEQoMCk9MCBcbWlkIEQ9MSkgXFwNClxlbmR7YWxpZ25lZH0NCiQkDQoNCk5vdyB3ZSBwbHVnIHRoZSBudW1lcmF0b3IgYW5kIGRlbm9taW5hdG9yIGJhY2sgaW50byBvdXIgZXhwcmVzc2lvbiBmb3IgJFx0YXVfe0xBVFR9JDoNCg0KJCQNClx0YXVfe0xBVFR9ID0gXGZyYWN7XHRhdV97TEFURX0gXGNkb3QgUChEKDEpID0gMSwgRCgwKT0wIFxtaWQgRD0xKX17UChEKDEpID0gMSwgRCgwKT0wIFxtaWQgRD0xKX0gPSBcdGF1X3tMQVRFfQ0KJCQNCg0KV2UgaGF2ZSBzaG93biB0aGF0IHVuZGVyIHJhbmRvbSBhc3NpZ25tZW50IG9mIFogdGhhdCB0aGUgTEFUVCBpcyBlcXVhbCB0byB0aGUgTEFURS4NCg0KRnJvbSB0aGUgbGVjdHVyZSB3ZSBrbm93IHRoZSBMQVRFIGlzIGlkZW50aWZpZWQgYXM6DQoNCiQkDQpcdGF1X3tMQVRFfSA9IFxmcmFje0VbWSBcbWlkIFo9MV0gLSBFW1kgXG1pZCBaPTBdfXtFW0QgXG1pZCBaPTFdIC0gRVtEIFxtaWQgWj0wXX0gPSBcdGF1X3tMQVRUfSBccXVhZCBcYmxhY2tzcXVhcmUNCiQkDQoNClRoZXJlZm9yZSB3ZSBoYXZlIHNob3cgaWRlbnRpZmljYXRpb24gb2YgdGhlIExBVFQuDQoNCiMjIyAyLjMgSW5mbHVlbmNlIGZ1bmN0aW9uIGRlcml2YXRpb24NCg0KV2UgaGF2ZSBzaG93biBpbiB0aGUgcHJldmlvdXMgc2VjdGlvbiB0aGF0IHRoZSBMQVRUIGNhbiBiZSBleHByZXNzZWQgYXMgYSByYXRpbyBvZiB0d28gQVRUcy4gQXMgd2Uga25vdyB0aGUgTmV5bWFuIG9ydGhvZ29uYWwgc2NvcmUgZm9yIHRoZSBBVFQsIHdlIGNhbiB1c2UgdGhlIGNoYWluIHJ1bGUgdG8gZGVyaXZlIGFuIGluZmx1ZW5jZSBmdW5jdGlvbiBmb3IgdGhlIExBVFQuDQoNClRoZSBOZXltYW4gb3J0aG9nb25hbCBzY29yZSBvZiB0aGUgQVRUIGlzIGdpdmVuIGJ5Og0KDQokJA0KXHBoaV97QVRUfShXOyBcZXRhKSA9IFx1bmRlcnNldHtcdGV4dHN0eWxlPVx0aWxkZXtZfV97QVRUfX17XHVuZGVyYnJhY2V7IFxmcmFje1d9e2V9KFkgLSBtKDAsWCkpIC0gXGZyYWN7MS1EfXtlKDEtZShYKSl9KFkgLSBtKDAsWCkpfX0gIC0gXHRhdV97QVRUfSBcZnJhY3tXfXtlfQ0KJCQNCg0KV2l0aCAkTz0oRCxYLFkpJCwgJFx0aGV0YSA9IFx0YXVfe0FUVH0kLCAkXGV0YSA9IChtKDAsWCksIGUoWCksIGUpXjEkIGFuZCB0aGUgdHdvIGxpbmVhciBzY29yZSBjb21wb25lbnRzICRccGhpX2EgPSBcdGlsZGV7WX1fe0FUVH0kIGFuZCAkXHBoaV9iID0gKC0xKVxmcmFje1d9e2V9JC4NCg0KTGV0J3MgdGFpbG9yIHRoaXMgc2NvcmUgZnVuY3Rpb24gbm93IHRvIHRoZSB0d28gc3BlY2lmaWMgQVRUcyB3ZSBoYXZlLg0K</div>
 
 
 </div>
