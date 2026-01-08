@@ -10,7 +10,7 @@
 
 
 
-<meta name="date" content="2026-01-06" />
+<meta name="date" content="2026-01-08" />
 
 <title>Group Assignment Causal Machine Learning</title>
 
@@ -2878,7 +2878,7 @@ border-radius: 0px;
 
 <h1 class="title toc-ignore">Group Assignment Causal Machine
 Learning</h1>
-<h4 class="date">2026-01-06</h4>
+<h4 class="date">2026-01-08</h4>
 
 </div>
 
@@ -2895,9 +2895,9 @@ Learning</h1>
 <p>To identify the LATT we use the following standard IV
 assumptions:</p>
 <p>(A1) Random Assignment of Z: <span class="math inline">\(Z \perp
-(Y(1), Y(0), D(1), D(0))\)</span></p>
-<p>(A2) Exclusion Restriction: <span class="math inline">\(Y(d, z) =
-Y(d)\)</span> for all <span class="math inline">\(d, z\)</span></p>
+(Y(1), Y(0), D(1), D(0)) \mid X\)</span></p>
+<p>(A2) Exclusion Restriction: <span class="math inline">\(Y(z,D(z)) =
+Y(D(z))\)</span> for all <span class="math inline">\(z\)</span></p>
 <p>This also implies:</p>
 <p>$$</p>
 <p>Y(D(1)) = Y(1)D(1) + Y(0)(1-D(1)) \</p>
@@ -2909,6 +2909,9 @@ E[D(0)]\)</span></p>
 defiers:</p>
 <p>(A4) Monotonicity: <span class="math inline">\(P(D(1) \geq D(0)) =
 1\)</span></p>
+<p>(A5) Consistency: <span class="math inline">\(D = D(Z)\)</span> and
+<span class="math inline">\(Y = Y(z,D(z)) \stackrel{\text{(A2)}}{=}
+Y(D(z))\)</span></p>
 <p>First we need to show, that <span class="math inline">\(\tau_{LATT}\)</span> that is defined as <span class="math inline">\(\tau_{LATT} = E[Y(1)-Y(0) \mid D(0)=0, D(1)=1,
 D=1]\)</span> can be written as the ratio of the ATT of the instrument
 on the outcome and the ATT of the instrument on the treatment:</p>
@@ -3008,103 +3011,428 @@ P(\text{Compliers} \mid D=1) \\
 <p><span class="math display">\[
 E[ Y(1)-Y(0) \mid D(0)=0, D(1)=1, D=1] = \frac{E[ Y(1,D(1)) - Y(0,D(0))
 \mid D=1]}{E[D(1) - D(0) \mid D=1]} \quad \blacksquare
+\]</span> Which we wanted to show.</p>
+<p>We will now use this result to show identification of <span class="math inline">\(\tau_{LATT}\)</span> under our IV assumptions
+(A1)-(A5).</p>
+<p>Starting with the numerator:</p>
+<p>We will proced tho show that the numerator is identifed by follwing
+AIPW structure, which we can split in regression and correction
+part:</p>
+<p><span class="math display">\[\frac{1}{P(D=1)} E \left[ Z Y - \left(
+\underset{\text{Regression Part}}{\underbrace{P(Z=1|X) E[Y|X, Z=0]}} +
+\underset{\text{Correction Part}}{\underbrace{\frac{P(Z=1|X)(1-Z)(Y -
+E[Y|X, Z=0])}{1 - P(Z=1|X)}}} \right) \right]\]</span></p>
+<p>We start by basic rewriting.</p>
+<p>We have already shown that we can use the exclusion restriction (A2)
+to rewrite the numerator as:</p>
+<p><span class="math display">\[
+E[ Y(1,D(1)) - Y(0,D(0)) \mid D=1] = E[ Y(D(1)) - Y(D(0)) \mid D=1]
 \]</span></p>
-<p>Which we wanted to show.</p>
-<p>Now we will proceed with the identification of the LATT under the
-stated assumptions. We start with the numerator:</p>
+<p>By the definition of conditional expectation we can write this
+as:</p>
+<p><span class="math display">\[
+E[ Y(D(1)) - Y(D(0)) \mid D=1 ] = \frac{E[ (Y(D(1)) - Y(D(0))) \cdot D
+]}{P(D=1)}
+\]</span></p>
+<p>We can again identify 4 types:</p>
+<ol style="list-style-type: decimal">
+<li>Always Takers: <span class="math inline">\(D(1)=1, D(0)=1 \implies
+Y(D(1)) - Y(D(0)) = 0\)</span></li>
+<li>Never Takers: <span class="math inline">\(D(1)=0, D(0)=0 \implies
+Y(D(1)) - Y(D(0)) = 0\)</span></li>
+<li>Compliers: <span class="math inline">\(D(1)=1, D(0)=0 \implies
+Y(D(1)) - Y(D(0)) = Y(1) - Y(0)\)</span></li>
+<li>Defiers: Ruled out by Montonicity (A4)</li>
+</ol>
+<p>So the term <span class="math inline">\(E[ (Y(D(1)) - Y(D(0))) \cdot
+D ]\)</span> is non-zero only for compliers. We also already know from
+above that for complies <span class="math inline">\(D=Z\)</span>.
+Therefore we can replace <span class="math inline">\(D\)</span> in the
+numerator expectation:</p>
+<p><span class="math display">\[E[ (Y(D(1)) - Y(D(0))) \cdot D ] = E[
+(Y(D(1)) - Y(D(0))) \cdot Z ]\]</span></p>
+<p>Now let’s focus on the regression part:</p>
+<p><span class="math display">\[E[ P(Z=1|X) E[Y|X, Z=0] ]\]</span></p>
+<p>Using Consistency and (A1 - <span class="math inline">\(Z \perp
+Y(D(0)) \mid X\)</span>) we can write:</p>
 <p><span class="math display">\[
 \begin{aligned}
-&amp; E[ Y(1,D(1)) - Y(0,D(0)) \mid D=1] \\
-&amp; \stackrel{\text{(A2)}}{=} E[ Y(D(1)) - Y(D(0)) \mid D=1] \\
-&amp; \stackrel{\text{(LIE)}}{=}
-E[\underset{\textstyle=0}{\underbrace{Y(1) - Y(1)}} \mid D(1) = 1,
-D(0)=1, D=1] \cdot P(D(1) = 1, D(0)=1 \mid D=1) \\
-&amp; + E[Y(1) - Y(0) \mid D(1) = 1, D(0)=0, D=1] \cdot P(D(1) = 1,
-D(0)=0 \mid D=1) \\
-&amp; + E[Y(0) - Y(1) \mid D(1) = 0, D(0)=1, D=1] \cdot
-\underset{\textstyle=0}{\underbrace{P(D(1) = 0, D(0)=1 \mid D=1)}} \\
-&amp; + E[\underset{\textstyle=0}{\underbrace{Y(0) - Y(0)}} \mid D(1) =
-0, D(0)=0, D=1] \cdot \underset{\textstyle=0}{\underbrace{P(D(1) = 0,
-D(0)=0 \mid D=1)}} \\
-&amp; = E[Y(1) - Y(0) \mid D(1) = 1, D(0)=0, D=1] \cdot P(D(1) = 1,
-D(0)=0 \mid D=1) \\
+&amp; E[ P(Z=1|X) E[Y|X, Z=0] ] \\
+&amp; \stackrel{\text{(A5)}}{=} E[ P(Z=1|X) E[Y(D(0))|X,Z=0] \\
+&amp; \stackrel{\text{(A1)}}{=} E[ P(Z=1|X) E[YD(0)|X] ] \\
+&amp; = E[ E[Z|X] E[Y(D(0))|X] ] \\
+&amp; = E[ E[Z  Y(D(0))|X] ] \\
+&amp; = E[ Z Y(D(0)) ]
 \end{aligned}
-\]</span> We can see that only the effect on compliers remains in the
-expression above.</p>
-<p>If the instrument is randomly assigned and we look only at the
-compliers, if D=1 this is equivalent to Z=1, and if D=0 this is
-equivalent to Z=0. Thus we can rewrite the above expression as:</p>
-<p><span class="math display">\[
-E[Y(1) - Y(0) \mid D(1) = 1, D(0)=0, D=1] \cdot P(D(1) = 1, D(0)=0 \mid
-D=1) = E[Y(1) - Y(0) \mid D(1) = 1, D(0)=0, Z=1] \cdot P(D(1) = 1,
-D(0)=0 \mid D=1)
 \]</span></p>
-<p>Additionally if (A1) hold (Z is randomly assigned and specially
-independent of potential outcomes and potential treatments), we can drop
-the conditioning on Z=1:</p>
-<p><span class="math display">\[
-E[Y(1) - Y(0) \mid D(1) = 1, D(0)=0, Z=1] = E[Y(1) - Y(0) \mid D(1) = 1,
-D(0)=0] = \tau_{LATE}
-\]</span></p>
-<p>This is equal to the LATE effect. So, We identified the numerator as
-a scaled version of the LATE:</p>
-<p><span class="math display">\[E[ Y(1,D(1)) - Y(0,D(0)) \mid D=1] =
-\tau_{LATE} \cdot P(D(1) = 1, D(0)=0 \mid D=1)\]</span></p>
-<p>Now we proceed with the denominator:</p>
-<p>We again decompose this using the law of iterated expectations:</p>
+<p>Now let’s look at the correction part:</p>
+<p><span class="math display">\[E \left[ \frac{P(Z=1|X)}{1 - P(Z=1|X)}
+(1-Z) (Y - E[Y|X, Z=0]) \right]\]</span></p>
+<p>By (A1) Random Assignment and (A2) Exclusion and (A5)
+Consistency:</p>
 <p><span class="math display">\[
 \begin{aligned}
-&amp; E[D(1) - D(0) \mid D=1] \\
-&amp; \stackrel{\text{(LIE)}}{=} E[\underset{\textstyle=0}{\underbrace{1
-- 1}} \mid D(1) = 1, D(0)=1, D=1] \cdot P(D(1) = 1, D(0)=1 \mid D=1) \\
-&amp; + E[1 - 0 \mid D(1) = 1, D(0)=0, D=1] \cdot P(D(1) = 1, D(0)=0
-\mid D=1) \\
-&amp; + E[0 - 1 \mid D(1) = 0, D(0)=1, D=1] \cdot
-\underset{\textstyle=0}{\underbrace{P(D(1) = 0, D(0)=1 \mid D=1)}} \\
-&amp; + E[\underset{\textstyle=0}{\underbrace{0 - 0}} \mid D(1) = 0,
-D(0)=0, D=1] \cdot \underset{\textstyle=0}{\underbrace{P(D(1) = 0,
-D(0)=0 \mid D=1)}} \\
-&amp; = 1 \cdot P(D(1) = 1, D(0)=0 \mid D=1) \\
+&amp; E[Y|X, Z=0] \\
+&amp; \stackrel{\text{(A5&amp;A2)}}{=} E[Y(D(0))|X, Z=0] \\
+&amp; \stackrel{\text{(A1)}}{=} E[Y(D(0))|X] \\
 \end{aligned}
 \]</span></p>
-<p>Now we plug the numerator and denominator back into our expression
-for <span class="math inline">\(\tau_{LATT}\)</span>:</p>
+<p>Let’s plug this in the correction part and apply the LIE:</p>
 <p><span class="math display">\[
-\tau_{LATT} = \frac{\tau_{LATE} \cdot P(D(1) = 1, D(0)=0 \mid
-D=1)}{P(D(1) = 1, D(0)=0 \mid D=1)} = \tau_{LATE}
-\]</span></p>
-<p>We have shown that under random assignment of Z that the LATT is
-equal to the LATE.</p>
-<p>From the lecture we know the LATE is identified as:</p>
+\begin{aligned}
+&amp; E \left[ \frac{P(Z=1|X)}{1 - P(Z=1|X)} (1-Z) (Y - E[Y|X, Z=0])
+\right] \\
+&amp; = E \left[ \frac{P(Z=1|X)}{1 - P(Z=1|X)} (1-Z) (Y - E[Y(D(0))|X])
+\right] \\
+&amp; \stackrel{\text{(LIE)}}{=} E \left[ E \left[ \frac{P(Z=1|X)}{1 -
+P(Z=1|X)} (1-Z) (Y - E[Y(D(0))|X]) \mid X \right] \right] \\
+&amp; = E \left[ \frac{P(Z=1|X)}{1 - P(Z=1|X)} E \left[ (1-Z) (Y -
+E[Y(D(0))|X]) \mid X \right] \right] \\
+\end{aligned}
+\]</span> Focus on the inner part and apply the LIE again:</p>
 <p><span class="math display">\[
-\tau_{LATE} = \frac{E[Y \mid Z=1] - E[Y \mid Z=0]}{E[D \mid Z=1] - E[D
-\mid Z=0]} = \tau_{LATT} \quad \blacksquare
-\]</span></p>
-<p>Therefore we have show identification of the LATT.</p>
+\begin{aligned}
+&amp; E \left[ (1-Z) (Y - E[Y(D(0))|X]) \mid X \right] \\
+&amp; \stackrel{\text{(LIE)}}{=} \ E[(1-1)(Y-E[Y(D(0))|X]) \mid X, Z=1]
+\cdot P(Z=1 \mid X) \\
+&amp; + E[(1-0)(Y-E[Y(D(0))|X]) \mid X, Z=0] \cdot P(Z=0 \mid X) \\
+&amp; =  E[(Y-E[Y(D(0))|X]) \mid X, Z=0] \cdot P(Z=0 \mid X) \\
+&amp; = (1 - P(Z=1|X)) \cdot (E[Y \mid X, Z=0] - E[Y(D(0))|X]) \\
+&amp; \stackrel{\text{(A1&amp;A5&amp;A2)}}{=} (1 - P(Z=1|X)) \cdot (
+E[Y(D(0)) \mid X] - E[Y(D(0))|X]) \\
+&amp; = 0 \\
+\end{aligned}
+\]</span> Now we look at the full AIPW representation of the numerator
+again, which we wrote as:</p>
+<p><span class="math display">\[E \left[ Z Y - \left( \text{Regression
+Part} + \text{Correction Part} \right) \right]\]</span></p>
+<p>We have shown that the regression part is equal to <span class="math inline">\(E[ Z Y(D(0)) ]\)</span> and the correction part is
+equal to 0. Additionally since <span class="math inline">\(Z=1\)</span>
+under Consistency <span class="math inline">\(D=D(1)\)</span> and <span class="math inline">\(Y = Y(D(1))\)</span>. Then the first part
+becomes:</p>
+<p><span class="math display">\[E[ZY] = E[Z Y(D(1))]\]</span></p>
+<p>Putting everything together we and remebering our first result when
+rewriting $ = E[ Y(D(1)) - Y(D(0)) D=1 ] $ we get:</p>
+<p><span class="math display">\[
+\begin{aligned}
+&amp; \frac{1}{P(D=1)} E \left[ Z Y - \left( \text{Regression Part} +
+\text{Correction Part} \right) \right] \\
+&amp; = \frac{1}{P(D=1)} E[Z Y(D(1))] - E[ Z Y(D(0)) ] \\
+&amp; = \frac{E[ Z (Y(D(1)) - Y(D(0))) ]}{P(D=1)} \\
+&amp; = E[ Y(D(1)) - Y(D(0)) \mid D=1 ] \\
+\end{aligned}
+\]</span> Therefore we have shown that the numerator is identified by
+the AIPW structure above.</p>
+<p>Let’s do the same for the denominator:</p>
+<p>We will proceed tho show that the denominator is identified by the
+same AIPW structure:</p>
+<p><span class="math display">\[\frac{1}{P(D=1)} E \left[ Z D - \left(
+\underset{\text{Regression Part}}{\underbrace{P(Z=1|X) E[D|X, Z=0]}} +
+\underset{\text{Correction Part}}{\underbrace{\frac{P(Z=1|X)(1-Z)(D -
+E[D|X, Z=0])}{1 - P(Z=1|X)}}} \right) \right]\]</span></p>
+<p>Let’s rewrite again:</p>
+<p><span class="math display">\[E[ D(1) - D(0) \mid D=1]\]</span></p>
+<p>By the definition of conditional expectation we can write this as:
+<span class="math display">\[E[ D(1) - D(0) \mid D=1 ] = \frac{E[ (D(1)
+- D(0)) \cdot D ]}{P(D=1)}\]</span> We can again identify 4 types:</p>
+<ol style="list-style-type: decimal">
+<li>Always Takers: <span class="math inline">\(D(1)=1, D(0)=1 \implies
+D(1) - D(0) = 0\)</span></li>
+<li>Never Takers: <span class="math inline">\(D(1)=0, D(0)=0 \implies
+D(1) - D(0) = 0\)</span> 3.Compliers: <span class="math inline">\(D(1)=1, D(0)=0 \implies D(1) - D(0) = 1\)</span>
+4.Defiers: Ruled out by Montonicity (A4)</li>
+</ol>
+<p>So the term <span class="math inline">\(E[ (D(1) - D(0)) \cdot D
+]\)</span> is non-zero only for compliers. We also already know from
+above that for complies <span class="math inline">\(D=Z\)</span>.
+Therefore we can replace <span class="math inline">\(D\)</span> (the
+multiplier) in the denominator expectation:</p>
+<p><span class="math display">\[E[ (D(1) - D(0)) \cdot D ] = E[ (D(1) -
+D(0)) \cdot Z ]\]</span> Now let’s focus on the regression part:</p>
+<p><span class="math display">\[E[ P(Z=1|X) E[D|X, Z=0] ]\]</span></p>
+<p>Using Consistency and (A1 - <span class="math inline">\(Z \perp D(0)
+\mid X\)</span>) we can write:</p>
+<p><span class="math display">\[\begin{aligned}
+&amp; E[ P(Z=1|X) E[D|X, Z=0] ] \\
+&amp; \stackrel{\text{(A5)}}{=} E[ P(Z=1|X) E[D(0)|X,Z=0] \\
+&amp; \stackrel{\text{(A1)}}{=} E[ P(Z=1|X) E[D(0)|X] ] \\
+&amp; = E[ E[Z|X] E[D(0)|X] ] \\
+&amp; = E[ E[Z  D(0)|X] ] \\
+&amp; = E[ Z D(0) ]
+\end{aligned}\]</span></p>
+<p>Now let’s look at the correction part: <span class="math display">\[E
+\left[ \frac{P(Z=1|X)}{1 - P(Z=1|X)} (1-Z) (D - E[D|X, Z=0])
+\right]\]</span></p>
+<p>By (A1) Random Assignment and (A5) Consistency:</p>
+<p><span class="math display">\[\begin{aligned}
+&amp; E[D|X, Z=0] \\
+&amp; \stackrel{\text{(A5)}}{=} E[D(0)|X, Z=0] \\
+&amp; \stackrel{\text{(A1)}}{=} E[D(0)|X] \\
+\end{aligned}\]</span></p>
+<p>Let’s plug this in the correction part and apply the LIE:</p>
+<p><span class="math display">\[\begin{aligned}
+&amp; E \left[ \frac{P(Z=1|X)}{1 - P(Z=1|X)} (1-Z) (D - E[D|X, Z=0])
+\right] \\
+&amp; = E \left[ \frac{P(Z=1|X)}{1 - P(Z=1|X)} (1-Z) (D - E[D(0)|X])
+\right] \\
+&amp; \stackrel{\text{(LIE)}}{=} E \left[ E \left[ \frac{P(Z=1|X)}{1 -
+P(Z=1|X)} (1-Z) (D - E[D(0)|X]) \mid X \right] \right] \\
+&amp; = E \left[ \frac{P(Z=1|X)}{1 - P(Z=1|X)} E \left[ (1-Z) (D -
+E[D(0)|X]) \mid X \right] \right] \\
+\end{aligned}\]</span></p>
+<p>Focus on the inner part and apply the LIE again:</p>
+<p><span class="math display">\[\begin{aligned}
+&amp; E \left[ (1-Z) (D - E[D(0)|X]) \mid X \right] \\
+&amp; \stackrel{\text{(LIE)}}{=} \ E[(1-1)(D-E[D(0)|X]) \mid X, Z=1]
+\cdot P(Z=1 \mid X) \\
+&amp; + E[(1-0)(D-E[D(0)|X]) \mid X, Z=0] \cdot P(Z=0 \mid X) \\
+&amp; =  E[(D-E[D(0)|X]) \mid X, Z=0] \cdot P(Z=0 \mid X) \\
+&amp; = (1 - P(Z=1|X)) \cdot (E[D \mid X, Z=0] - E[D(0)|X]) \\
+&amp; \stackrel{\text{(A1&amp;A5)}}{=} (1 - P(Z=1|X)) \cdot ( E[D(0)
+\mid X] - E[D(0)|X]) \\
+&amp; = 0 \\
+\end{aligned}\]</span></p>
+<p>Now we look at the full AIPW representation of the denominator again,
+which we wrote as:</p>
+<p><span class="math display">\[E \left[ Z D - \left( \text{Regression
+Part} + \text{Correction Part} \right) \right]\]</span> We have shown
+that the regression part is equal to <span class="math inline">\(E[ Z
+D(0) ]\)</span> and the correction part is equal to 0.</p>
+<p>Additionally since <span class="math inline">\(Z=1\)</span> under
+Consistency <span class="math inline">\(D=D(1)\)</span>.</p>
+<p>Then the first part becomes:</p>
+<p><span class="math display">\[E[ZD] = E[Z D(1)]\]</span></p>
+<p>Putting everything together we and remebering our first result when
+rewriting <span class="math inline">\(\frac{E[ Z (D(1) - D(0))
+]}{P(D=1)} = E[ D(1) - D(0) \mid D=1 ]\)</span> we get:</p>
+<p><span class="math display">\[\begin{aligned}
+&amp; \frac{1}{P(D=1)} E \left[ Z D - \left( \text{Regression Part} +
+\text{Correction Part} \right) \right] \\
+&amp; = \frac{1}{P(D=1)} E[Z D(1)] - E[ Z D(0) ] \\
+&amp; = \frac{E[ Z (D(1) - D(0)) ]}{P(D=1)} \\
+&amp; = E[ D(1) - D(0) \mid D=1 ] \\
+\end{aligned}\]</span></p>
+<p>Therefore we have shown that the denominator is identified by the
+AIPW structure above.</p>
+<p>We have succesfully shown that both the numerator and denominator of
+the LATT are identified by the AIPW-ATT structure under our IV
+assumptions (A1)-(A5). Thus the LATT itself is identified as the ratio
+of the two identified AIPW-ATT ratios.</p>
 </div>
 </div>
 <div id="influence-function-derivation" class="section level3">
 <h3>2.3 Influence function derivation</h3>
 <p>We have shown in the previous section that the LATT can be expressed
-as a ratio of two ATTs. As we know the Neyman orthogonal score for the
+as a ratio of two ATTs. As we know the Neyman-orthogonal score for the
 ATT, we can use the chain rule to derive an influence function for the
 LATT.</p>
 <p>The Neyman orthogonal score of the ATT is given by:</p>
 <p><span class="math display">\[
-\phi_{ATT}(W; \eta) = \underset{\textstyle=\tilde{Y}_{ATT}}{\underbrace{
-\frac{W}{e}(Y - m(0,X)) - \frac{1-D}{e(1-e(X))}(Y - m(0,X))}}  -
-\tau_{ATT} \frac{W}{e}
+\psi_{ATT}(O;\theta;\eta) =
+\underset{\textstyle=\tilde{Y}_{ATT}}{\underbrace{ \frac{D}{e}(Y -
+m(0,X)) - \frac{(1-D)e(X)}{e(1-e(X))}(Y - m(0,X))}}  - \tau_{ATT}
+\frac{W}{e}
 \]</span></p>
-<p>With <span class="math inline">\(O=(D,X,Y)\)</span>, <span class="math inline">\(\theta = \tau_{ATT}\)</span>, <span class="math inline">\(\eta = (m(0,X), e(X), e)^1\)</span> and the two
-linear score components <span class="math inline">\(\phi_a =
-\tilde{Y}_{ATT}\)</span> and <span class="math inline">\(\phi_b =
-(-1)\frac{W}{e}\)</span>.</p>
+<p>With <span class="math inline">\(O=(D,X,Y)\)</span>, <span class="math inline">\(\theta = \tau_{ATT}\)</span>, <span class="math inline">\(\eta = (m(0,X), e(X), e)\)</span> and the two
+linear score components <span class="math inline">\(\psi_a(O;\eta) =
+(-1)\frac{D}{e}\)</span> and <span class="math inline">\(\psi_b(O;\eta)
+= \tilde{Y}_{ATT}\)</span>.</p>
+<p><span class="math inline">\(m(0,X)\)</span> is the regression
+function of <span class="math inline">\(Y\)</span> given <span class="math inline">\(D=0\)</span> and <span class="math inline">\(X\)</span>, <span class="math inline">\(e(X)\)</span> is the propensity score of <span class="math inline">\(D\)</span> given <span class="math inline">\(X\)</span> and <span class="math inline">\(e\)</span> is the unconditional probability of
+treatment.</p>
 <p>Let’s tailor this score function now to the two specific ATTs we
 have.</p>
+<p>Let’s start with the numerator, which is the ATT of the instrument on
+the outcome. Therefore we simply need to replace <span class="math inline">\(D\)</span> with <span class="math inline">\(Z\)</span> and all nuisance parameters
+respectively:</p>
+<p><span class="math display">\[
+\psi_{ATT}^{Y}(O;\theta;\eta)
+= \underset{\textstyle=\tilde{Y}_{ATT}^{Z}}{\underbrace{ \frac{Z}{h}(Y -
+m_{Z}(0,X)) - \frac{(1-Z)(h(X))}{h(1-h(X))}(Y - m_{Z}(0,X))}}  -
+\tau_{ATT}^{Y} \frac{Z}{h}
+\]</span></p>
+<p>, where <span class="math inline">\(O=(Z,X,Y)\)</span>, <span class="math inline">\(\theta = \tau_{ATT}^{Y}\)</span>, <span class="math inline">\(\eta = (m_{Z}(0,X), h(X), h)\)</span> and the two
+linear score components <span class="math inline">\(\psi_a^{Y}(O;\eta) =
+(-1)\frac{Z}{h}\)</span> and <span class="math inline">\(\psi_b^{Y}(O;\eta) =
+\tilde{Y}_{ATT}^{Z}\)</span>.</p>
+<p>The nuisance parameters are now defined as follows: <span class="math inline">\(m_{Z}(0,X)\)</span> is the regression function of
+<span class="math inline">\(Y\)</span> given <span class="math inline">\(Z=0\)</span> and <span class="math inline">\(X\)</span>, <span class="math inline">\(h(X)\)</span> is the propensity score of <span class="math inline">\(Z\)</span> given <span class="math inline">\(X\)</span> and <span class="math inline">\(h\)</span> is the unconditional probability of
+<span class="math inline">\(Z\)</span>.</p>
+<p>Let’s proceed with the denominator, which is the ATT of the
+instrument on the treatment:</p>
+<p>We define <span class="math inline">\(O=(Z,X,D)\)</span>, <span class="math inline">\(\theta = \tau_{ATT}^{D}\)</span>, <span class="math inline">\(\eta = (e_{Z}(0,X), h(X), h)\)</span> and the two
+linear score components <span class="math inline">\(\psi_a^{D}(O;\eta) =
+(-1)\frac{Z}{h}\)</span> and <span class="math inline">\(\psi_b^{D}(O;\eta) =
+\tilde{D}_{ATT}^{Z}\)</span>.</p>
+<p>The complete score function for the ATT of the instrument on the
+treatment is then given by:</p>
+<p><span class="math display">\[
+\psi_{ATT}^{D}(O;\theta;\eta) =
+\underset{\textstyle=\tilde{D}_{ATT}^{Z}}{\underbrace{ \frac{Z}{h}(D -
+e_{Z}(0,X)) - \frac{(1-Z)(h(X))}{h(1-h(X))}(D - e_{Z}(0,X))}}  -
+\tau_{ATT}^{D} \frac{Z}{h}
+\]</span></p>
+<p>Now that we have defined the two score functions for the numerator
+and denominator, we can derive the two influence functions <span class="math inline">\(\Psi_{ATT}^{Y}\)</span> and <span class="math inline">\(\Psi_{ATT}^{D}\)</span> using the linear
+components:</p>
+<p><span class="math display">\[
+\begin{aligned}
+&amp; \Psi_{ATT}^{Y} = - \mathbb{E}[\psi_a^{Y}]^{-1} \cdot
+\psi_{ATT}^{Y} \\
+&amp; = - \left(\mathbb{E}\left[-\frac{Z}{h}\right]\right)^{-1} \cdot
+\left(\tilde{Y}_{ATT}^{Z} - \tau_{ATT}^{Y} \frac{Z}{h}\right) \\
+&amp; = - \left(-\frac{\mathbb{E}[Z]}{h}\right)^{-1} \cdot
+\left(\tilde{Y}_{ATT}^{Z} - \tau_{ATT}^{Y} \frac{Z}{h}\right) \\
+&amp; = - \left(-\frac{h}{h}\right)^{-1} \left(\tilde{Y}_{ATT}^{Z} -
+\tau_{ATT}^{Y} \frac{Z}{h}\right) \\
+&amp; = - \left(-1\right)^{-1} \left(\tilde{Y}_{ATT}^{Z} -
+\tau_{ATT}^{Y} \frac{Z}{h}\right) \\
+&amp; = \tilde{Y}_{ATT}^{Z} - \tau_{ATT}^{Y} \frac{Z}{h} \\
+\end{aligned}
+\]</span></p>
+<p>Subsequently for the ATT of the instrument on the treatment we
+have:</p>
+<p><span class="math display">\[
+\begin{aligned}
+&amp; \Psi_{ATT}^{D} = - \mathbb{E}[\psi_a^{D}]^{-1} \cdot
+\psi_{ATT}^{D} \\
+&amp; = - \left(\mathbb{E}\left[-\frac{Z}{h}\right]\right)^{-1} \cdot
+\left(\tilde{D}_{ATT}^{Z} - \tau_{ATT}^{D} \frac{Z}{h}\right) \\
+&amp; = - \left(-\frac{\mathbb{E}[Z]}{h}\right)^{-1} \cdot
+\left(\tilde{D}_{ATT}^{Z} - \tau_{ATT}^{D} \frac{Z}{h}\right) \\
+&amp; = - \left(-\frac{h}{h}\right)^{-1} \left(\tilde{D}_{ATT}^{Z} -
+\tau_{ATT}^{D} \frac{Z}{h}\right) \\
+&amp; = - \left(-1\right)^{-1} \left(\tilde{D}_{ATT}^{Z} -
+\tau_{ATT}^{D} \frac{Z}{h}\right) \\
+&amp; = \tilde{D}_{ATT}^{Z} - \tau_{ATT}^{D} \frac{Z}{h} \\
+\end{aligned}
+\]</span></p>
+<p>Our LATT parameter is a ratio of the two ATTs:</p>
+<p><span class="math display">\[
+\tau_{LATT} = \frac{\tau_{ATT}^{Y}}{\tau_{ATT}^{D}}
+\]</span></p>
+<p>Using the chain rule we can derive the influence function for the
+LATT as follows:</p>
+<p><span class="math display">\[
+\begin{aligned}
+&amp; \Psi_{LATT} = \frac{\partial \tau_{LATT}}{\partial \tau_{ATT}^{Y}}
+\Psi_{ATT}^{Y} + \frac{\partial \tau_{LATT}}{\partial \tau_{ATT}^{D}}
+\Psi_{ATT}^{D} \\
+&amp; = \frac{\Psi_{ATT}^{Y}}{\tau_{ATT}^{D}} -
+\frac{\tau_{ATT}^{Y}}{(\tau_{ATT}^{D})^2} \Psi_{ATT}^{D}
+\end{aligned}
+\]</span></p>
+<p>Now we plug in the two ATT influence functions we have derived before
+using our linear components:</p>
+<p><span class="math display">\[
+\begin{aligned}
+&amp; \Psi_{LATT} = \frac{\tilde{Y}_{ATT}^{Z} - \tau_{ATT}^{Y}
+\frac{Z}{h}}{\tau_{ATT}^{D}} - \frac{\tau_{ATT}^{Y}}{(\tau_{ATT}^{D})^2}
+\left(\tilde{D}_{ATT}^{Z} - \tau_{ATT}^{D} \frac{Z}{h}\right) \\
+&amp; = \frac{\tilde{Y}_{ATT}^{Z}}{\tau_{ATT}^{D}} -
+\frac{\tau_{ATT}^{Y}}{\tau_{ATT}^{D}} \frac{Z}{h} -
+\frac{\tau_{ATT}^{Y}}{(\tau_{ATT}^{D})^2} \tilde{D}_{ATT}^{Z} - \left(
+\frac{\tau_{ATT}^{Y}}{(\tau_{ATT}^{D})^2} \right) \left( -
+\tau_{ATT}^{D} \frac{Z}{h} \right) \\
+&amp; = \frac{\tilde{Y}_{ATT}^{Z}}{\tau_{ATT}^{D}} -
+\frac{\tau_{ATT}^{Y}}{\tau_{ATT}^{D}} \frac{Z}{h} -
+\frac{\tau_{ATT}^{Y}}{(\tau_{ATT}^{D})^2} \tilde{D}_{ATT}^{Z} +
+\frac{\tau_{ATT}^{Y}}{\tau_{ATT}^{D}} \frac{Z}{h} \\
+&amp; = \frac{\tilde{Y}_{ATT}^{Z}}{\tau_{ATT}^{D}} -
+\frac{\tau_{ATT}^{Y}}{(\tau_{ATT}^{D})^2} \tilde{D}_{ATT}^{Z} \\
+\end{aligned}
+\]</span></p>
+<p>We can write this in a more compact form by substituting back the
+definition of <span class="math inline">\(\tau_{LATT}\)</span> and
+factoring out <span class="math inline">\(\frac{1}{\tau_{ATT}^{D}}\)</span>:</p>
+<p><span class="math display">\[
+\begin{aligned}
+&amp; \Psi_{LATT} = \frac{1}{\tau_{ATT}^{D}} \left( \tilde{Y}_{ATT}^{Z}
+- \tau_{LATT} \cdot \tilde{D}_{ATT}^{Z} \right) \\
+\end{aligned}
+\]</span></p>
+<p>This is our final influence function for the LATT. We can observe
+that the final version simplifies to a scaled type of pseudo outcome on
+pseudo outcome regression, which looks very familiar.</p>
+<p>Before we can apply the Double Machine Learning framework we
+additionally need to derive the new empirical moment condition of <span class="math inline">\(\tau_{LATT}\)</span> and solve it.</p>
+<p>Before looking at the ratio of the two ATT Neyman-orthogonal score
+let’s first</p>
+<p>We have shown that <span class="math inline">\(\tau_{LATT}\)</span>
+can be expressed by the ratio of two ATTs.</p>
+<p><span class="math display">\[
+\begin{aligned}
+&amp; \tau_{LATT} = \frac{\tau_{ATT}^{Y}}{\tau_{ATT}^{D}} \\
+&amp; = \frac{E[\psi_{ATT}^{Y}]}{E[\psi_{ATT}^{D}]} \\
+&amp; \implies E[\psi_{ATT}^{Y} - \tau_{LATT} \psi_{ATT}^{D}] = 0 \\
+\end{aligned}
+\]</span></p>
+<p>Now let’s look at this moment condition in more detail:</p>
+<p><span class="math display">\[
+\begin{aligned}
+&amp; E[\psi_{ATT}^{Y} - \tau_{LATT} \cdot \psi_{ATT}^{D}] = 0 \\
+&amp; E[(\tilde{Y}_{ATT}^{Z} - \tau_{ATT}^{Y} \frac{Z}{h}) - \tau_{LATT}
+\cdot (\tilde{D}_{ATT}^{Z} - \tau_{ATT}^{D} \frac{Z}{h})] = 0 \\
+&amp; E[\underset{Residual \ Part}{\underbrace{(\tilde{Y}_{ATT}^{Z} -
+\tau_{LATT}\cdot\tilde{D}_{ATT}^{Z})}} + \underset{Centering \
+Part}{\underbrace{(- \tau_{ATT}^{Y} \frac{Z}{h} +
+\tau_{LATT}\cdot\tau_{ATT}^{D} \frac{Z}{h})}}] = 0 \\
+\end{aligned}
+\]</span></p>
+<p>Let’s zoom in on the centering part, plug in the definition of <span class="math inline">\(\tau_{LATT}\)</span> and show that its expectation
+is equal to zero:</p>
+<p><span class="math display">\[
+\begin{aligned}
+&amp; E[- \tau_{ATT}^{Y} \frac{Z}{h} + \tau_{LATT}\cdot\tau_{ATT}^{D}
+\frac{Z}{h}] \\
+&amp; = E[- \tau_{ATT}^{Y} \frac{Z}{h} +
+\frac{\tau_{ATT}^{Y}}{\tau_{ATT}^{D}} \cdot\tau_{ATT}^{D} \frac{Z}{h}]
+\\
+&amp; = E[- \tau_{ATT}^{Y} \frac{Z}{h} + \tau_{ATT}^{Y} \frac{Z}{h}] \\
+&amp; = 0 \\
+\end{aligned}
+\]</span></p>
+<p>Therefore the moment condition simplifies to:</p>
+<p><span class="math display">\[
+E[\tilde{Y}_{ATT}^{Z} - \tau_{LATT}\cdot\tilde{D}_{ATT}^{Z}] = 0
+\]</span></p>
+<p>With the two linear score components <span class="math inline">\(\psi_a(O; \eta) = (-1)
+\tilde{D}_{ATT}^{Z}\)</span> and <span class="math inline">\(\psi_b(O;
+\eta) = \tilde{Y}_{ATT}^{Z}\)</span>.</p>
+<p>Now that we have derived the influence function and the empirical
+Neyman-orthogonal moment condition for our new parameter <span class="math inline">\(\tau_{LATT}\)</span>, we can use following
+procedure to estimate <span class="math inline">\(\hat\tau_{LATT}\)</span> using the Double Machine
+Learning framework:</p>
+<ol style="list-style-type: decimal">
+<li><p>Estimate the nuisance parameters <span class="math inline">\(m_{Z}(0,X)\)</span>, <span class="math inline">\(e_{Z}(0,X)\)</span>, <span class="math inline">\(h(X)\)</span> and <span class="math inline">\(h\)</span> with cross-fitted high quality machine
+learning methods.</p></li>
+<li><p>Estimate the target parameter <span class="math inline">\(\tau_{LATT}\)</span> by solving the empirical
+moment condition:</p></li>
+</ol>
+<p><span class="math display">\[
+\hat\tau_{LATT} = - \frac{\sum_{i} \psi_b(O_i; \hat{\eta}_i)}{\sum_{i}
+\psi_a(O_i; \hat{\eta}_i)}
+\]</span></p>
+<p>Plugging our derived linear scores in:</p>
+<p><span class="math display">\[
+\hat\tau_{LATT} = - \frac{\sum_{i} \tilde{Y}_{ATT,i}^{Z}}{\sum_{i} (-1)
+\tilde{D}_{ATT,i}^{Z}} = \frac{\sum_{i} \tilde{Y}_{ATT,i}^{Z}}{\sum_{i}
+\tilde{D}_{ATT,i}^{Z}}
+\]</span></p>
+<ol start="3" style="list-style-type: decimal">
+<li>Estimate standard errors using the derived influence function:</li>
+</ol>
+<p><span class="math display">\[
+\begin{aligned}
+&amp; \hat{\sigma}_{LATT} = \operatorname{Var}(\Psi_{LATT}) \\
+&amp; \implies \widehat{\operatorname{se}}(\hat{\tau}_{LATT}) =
+\sqrt{\frac{\hat{\sigma}_{LATT}}{n}}
+\end{aligned}
+\]</span></p>
 <!-- rnb-text-end -->
 </div>
 
-<div id="rmd-source-code">LS0tDQp0aXRsZTogIkdyb3VwIEFzc2lnbm1lbnQgQ2F1c2FsIE1hY2hpbmUgTGVhcm5pbmciDQphdXRob3JzOiAiRWdvciBUcnVzaGtvdiwgNjY3Mjg3NDsgRG9taW5pYyBQw7ZsdGwsIDY2MTg2NzAiDQpkYXRlOiAiYHIgU3lzLkRhdGUoKWAiDQpvdXRwdXQ6DQogIGh0bWxfbm90ZWJvb2s6DQogICAgdG9jOiB0cnVlDQogICAgdG9jX2Zsb2F0OiB0cnVlDQogICAgY29kZV9mb2xkaW5nOiBzaG93DQotLS0NCg0KIyMjIDIuMSBMaXRlcmF0dXJlIFJldmlldw0KDQouLi4NCg0KIyMjIDIuMiBJZGVudGlmaWNhdGlvbiBvZiBMQVRUL0xBVFUNCg0KIyMjIyBMQVRUDQoNClRvIGlkZW50aWZ5IHRoZSBMQVRUIHdlIHVzZSB0aGUgZm9sbG93aW5nIHN0YW5kYXJkIElWIGFzc3VtcHRpb25zOg0KDQooQTEpIFJhbmRvbSBBc3NpZ25tZW50IG9mIFo6ICRaIFxwZXJwIChZKDEpLCBZKDApLCBEKDEpLCBEKDApKSQNCg0KKEEyKSBFeGNsdXNpb24gUmVzdHJpY3Rpb246ICRZKGQsIHopID0gWShkKSQgZm9yIGFsbCAkZCwgeiQNCg0KVGhpcyBhbHNvIGltcGxpZXM6DQoNClwkXCQNCg0KWShEKDEpKSA9IFkoMSlEKDEpICsgWSgwKSgxLUQoMSkpIFxcDQoNClkoRCgwKSkgPSBZKDEpRCgwKSArIFkoMCkoMS1EKDApKQ0KDQpcJFwkDQoNCihBMykgUmVsZXZhbmNlOiAkRVtEKDEpXSBcbmVxIEVbRCgwKV0kDQoNCkFkZGl0aW9uYWxseSB3ZSBpbXBvc2UgdGhlIGFzc3VtcHRpb24gb2YgbW9ub3RvbmljaXR5IGFuZCBydWxlIG91dCBkZWZpZXJzOg0KDQooQTQpIE1vbm90b25pY2l0eTogJFAoRCgxKSBcZ2VxIEQoMCkpID0gMSQNCg0KRmlyc3Qgd2UgbmVlZCB0byBzaG93LCB0aGF0ICRcdGF1X3tMQVRUfSQgdGhhdCBpcyBkZWZpbmVkIGFzICRcdGF1X3tMQVRUfSA9IEVbWSgxKS1ZKDApIFxtaWQgRCgwKT0wLCBEKDEpPTEsIEQ9MV0kIGNhbiBiZSB3cml0dGVuIGFzIHRoZSByYXRpbyBvZiB0aGUgQVRUIG9mIHRoZSBpbnN0cnVtZW50IG9uIHRoZSBvdXRjb21lIGFuZCB0aGUgQVRUIG9mIHRoZSBpbnN0cnVtZW50IG9uIHRoZSB0cmVhdG1lbnQ6DQoNCiQkXHRhdV97TEFUVH0gPSBcZnJhY3tFWyBZKDEsRCgxKSkgLSBZKDAsRCgwKSkgXG1pZCBEPTFdfSB7RVtEKDEpIC0gRCgwKSBcbWlkIEQ9MV19JCQNCg0KV2Ugc3RhcnQgdGhpcyBwcm9vZiB3aXRoIHRoZSBudW1lcmF0b3Igb2YgdGhlIHNlY29uZCB0ZXJtOg0KDQokJA0KXGJlZ2lue2FsaWduZWR9DQomIEVbIFkoMSxEKDEpKSAtIFkoMCxEKDApKSBcbWlkIEQ9MV0gXFwNCiYgXHN0YWNrcmVse1x0ZXh0eyhBMil9fXs9fSBFWyBZKEQoMSkpIC0gWShEKDApKSBcbWlkIEQ9MV0gXFwNCiYgPSBFWyBZKDEpRCgxKSArIFkoMCkoMS1EKDEpKSAtIChZKDEpRCgwKSArIFkoMCkoMS1EKDApKSkgXG1pZCBEPTFdIFxcDQomPSBFW1koMSlEKDEpICsgWSgwKSAtIFkoMClEKDEpIC0gWSgxKUQoMCkgLSBZKDApICsgWSgwKUQoMCkgXG1pZCBEPTFdIFxcDQomID0gRVsgWSgxKShEKDEpLUQoMCkpICsgWSgwKShEKDApLUQoMSkpIFxtaWQgRD0xXSBcXA0KJiA9IEVbIChZKDEpLVkoMCkpKEQoMSktRCgwKSkgXG1pZCBEPTFdIFxcDQpcZW5ke2FsaWduZWR9DQokJA0KDQpXZSBjYW4gZGl2aWRlIHRoaXMgYmFzZWQgb24gZm91ciBkaWZmZWVyZW50IGNvbXBsaWFuY2UgdHlwZXM6DQoNCjEuICBBbHdheXMgVGFrZXJzOiAkRCgxKT0xLCBEKDApPTEgXGltcGxpZXMgRCgxKSAtIEQoMCkgPSAwJA0KMi4gIE5ldmVyIFRha2VyczogJEQoMSk9MCwgRCgwKT0wIFxpbXBsaWVzIEQoMSkgLSBEKDApID0gMCQNCjMuICBDb21wbGllcnM6ICREKDEpPTEsIEQoMCk9MCBcaW1wbGllcyBEKDEpIC0gRCgwKSA9IDEkDQo0LiAgRGVmaWVyczogJEQoMSk9MCwgRCgwKT0xIFxpbXBsaWVzIEQoMSkgLSBEKDApID0gLTEkDQoNClVuZGVyIG91ciBtb25vdG9uaWNpdHkgYXNzdW1wdGlvbiAoQTQpIHdlIGNhbiBydWxlIG91dCBkZWZpZXJzLiBGb3JtYWxseSB0aGlzIGltcGxpZXMgdGhhdCAkUChEKDEpIC0gRCgwKSA9IC0xICkgPSBQKERlZmllcnMpID0gUChEZWZpZXJzIFxtaWQgRD0xKSA9IDAkLg0KDQpBbHNvLCB3aGVuIHdlIGNvbmRpdGlvbiBvbiBEID0gMSwgbmV2ZXIgdGFrZXJzIGFyZSBub3QgaW5jbHVkZWQgaW4gdGhpcyBncm91cCwgc2luY2UgdGhleSBuZXZlciB0YWtlIHRoZSB0cmVhdG1lbnQgcmVnYXJkbGVzcyBvZiB0aGUgaW5zdHJ1bWVudCB2YWx1ZS4gVGh1cywgd2hlbiB3ZSBjb25kaXRpb24gb24gRCA9IDEsIHRoZSBvbmx5IGNvbXBsaWFuY2UgdHlwZXMgdGhhdCByZW1haW4gYXJlIGFsd2F5cyB0YWtlcnMgYW5kIGNvbXBsaWVycy4gRm9ybWFsbHksICRQKE5ldmVyIFRha2VycyB8IEQ9MSkgPSAwJC4NCg0KV2UgY2FuIHJld2l0ZSBvdXIgcHJldmlvdXMgZXF1YXRpb24gdXNpbmcgdGhlIGxhdyBvZiBpdGVyYXRlZCBleHBlY3RhdGlvbnMgYW5kIGNvbmRpdGlvbmluZyBvbiB0aGUgY29tcGxpYW5jZSB0eXBlczoNCg0KJCQNClxiZWdpbnthbGlnbmVkfQ0KJiBFWyAoWSgxKS1ZKDApKShEKDEpLUQoMCkpIFxtaWQgRD0xXSBcXA0KJiBcc3RhY2tyZWx7XHRleHR7KExJRSl9fXs9fSBFWyAoWSgxKS1ZKDApKShEKDEpLUQoMCkpIFxtaWQgRD0xLCBcdGV4dHtBbHdheXMgVGFrZXJzfV0gXGNkb3QgUChcdGV4dHtBbHdheXMgVGFrZXJzfSBcbWlkIEQ9MSkgXFwNCiYgKyBFWyAoWSgxKS1ZKDApKShEKDEpLUQoMCkpIFxtaWQgRD0xLCBcdGV4dHtOZXZlciBUYWtlcnN9XSBcY2RvdCBcdW5kZXJzZXR7XHRleHRzdHlsZT0wfXtcdW5kZXJicmFjZXtQKFx0ZXh0e05ldmVyIFRha2Vyc30gXG1pZCBEPTEpfX0gXFwNCiYgKyBFWyAoWSgxKS1ZKDApKShEKDEpLUQoMCkpIFxtaWQgRD0xLCBcdGV4dHtDb21wbGllcnN9XSBcY2RvdCBQKFx0ZXh0e0NvbXBsaWVyc30gXG1pZCBEPTEpIFxcDQomICsgRVsgKFkoMSktWSgwKSkoRCgxKS1EKDApKSBcbWlkIEQ9MSwgXHRleHR7RGVmaWVyc31dIFxjZG90IFAoXHRleHR7RGVmaWVyc30gXG1pZCBEPTEpIFxcDQomIFxzdGFja3JlbHtcdGV4dHsoQTQpfX17PX0gMCBcY2RvdCBQKFx0ZXh0e0Fsd2F5cyBUYWtlcnN9IFxtaWQgRD0xKSBcXA0KJiArIDAgXGNkb3QgUChcdGV4dHtOZXZlciBUYWtlcnN9IFxtaWQgRD0xKSBcXA0KJiArIEVbIChZKDEpLVkoMCkpIFxjZG90IDEgXG1pZCBEPTEsIFx0ZXh0e0NvbXBsaWVyc31dIFxjZG90IFAoXHRleHR7Q29tcGxpZXJzfSBcbWlkIEQ9MSkgXFwNCiYgKyAoLTEpIFxjZG90IFx1bmRlcnNldHtcdGV4dHN0eWxlPTB9e1x1bmRlcmJyYWNle1AoXHRleHR7RGVmaWVyc30gXG1pZCBEPTEpfX0gXFwNCiYgPSBFWyBZKDEpLVkoMCkgXG1pZCBEPTEsIFx0ZXh0e0NvbXBsaWVyc31dIFxjZG90IFAoXHRleHR7Q29tcGxpZXJzfSBcbWlkIEQ9MSkgXFwNCiYgPSBFWyBZKDEpLVkoMCkgXG1pZCBEKDApPTAsIEQoMSk9MSwgRD0xXSBcY2RvdCBQKEQoMCk9MCwgRCgxKT0xIFxtaWQgRD0xKSBcXA0KXGVuZHthbGlnbmVkfQ0KJCQNCg0KV2UgaGF2ZSBzaG93IHRoZSBlcXVpdmFsZW5jZSBvZjoNCg0KJCQNCkVbIFkoMSxEKDEpKSAtIFkoMCxEKDApKSBcbWlkIEQ9MV0gPSBFWyBZKDEpLVkoMCkgXG1pZCBEKDApPTAsIEQoMSk9MSwgRD0xXSBQKEQoMCk9MCwgRCgxKT0xIFxtaWQgRD0xKQ0KJCQNCg0KTm93IHdlIGNhbiByZWFycmFuZ2UgdGhpcyB0byBleHByZXNzICRcdGF1X3tMQVRUfSQ6DQoNCiQkDQpFWyBZKDEpLVkoMCkgXG1pZCBEKDApPTAsIEQoMSk9MSwgRD0xXSA9IFxmcmFje0VbIFkoMSxEKDEpKSAtIFkoMCxEKDApKSBcbWlkIEQ9MV19e1AoRCgwKT0wLCBEKDEpPTEgXG1pZCBEPTEpfQ0KJCQNCg0KTm93IHdlIHNob3cgdGhhdCB0aGUgZGVub21pbmF0b3IgY2FuIGJlIHdyaXR0ZW4gYXMgJEVbRCgxKSAtIEQoMCkgXG1pZCBEPTFdJDoNCg0KJCQNClxiZWdpbnthbGlnbmVkfQ0KJiBFW0QoMSkgLSBEKDApIFxtaWQgRD0xXSBcXA0KJiBcc3RhY2tyZWx7XHRleHR7KExJRSl9fXs9fSBFW0QoMSkgLSBEKDApIFxtaWQgRD0xLCBcdGV4dHtBbHdheXMgVGFrZXJzfV0gXGNkb3QgUChcdGV4dHtBbHdheXMgVGFrZXJzfSBcbWlkIEQ9MSkgXFwNCiYgKyBFW0QoMSkgLSBEKDApIFxtaWQgRD0xLCBcdGV4dHtOZXZlciBUYWtlcnN9XSBcY2RvdCAgXHVuZGVyc2V0e1x0ZXh0c3R5bGU9MH17XHVuZGVyYnJhY2V7UChcdGV4dHtOZXZlciBUYWtlcnN9IFxtaWQgRD0xKX19IFxcDQomICsgRVtEKDEpIC0gRCgwKSBcbWlkIEQ9MSwgXHRleHR7Q29tcGxpZXJzfV0gXGNkb3QgUChcdGV4dHtDb21wbGllcnN9IFxtaWQgRD0xKSBcXA0KJiArIEVbRCgxKSAtIEQoMCkgXG1pZCBEPTEsIFx0ZXh0e0RlZmllcnN9XSBcY2RvdCBQKFx0ZXh0e0RlZmllcnN9IFxtaWQgRD0xKSBcXA0KJiBcc3RhY2tyZWx7XHRleHR7KEE0KX19ez19IDAgXGNkb3QgUChcdGV4dHtBbHdheXMgVGFrZXJzfSBcbWlkIEQ9MSkgXFwNCiYgKyAwIFxjZG90IFAoXHRleHR7TmV2ZXIgVGFrZXJzfSBcbWlkIEQ9MSkgXFwNCiYgKyAxIFxjZG90IFAoXHRleHR7Q29tcGxpZXJzfSBcbWlkIEQ9MSkgXFwNCiYgKyAoLTEpIFxjZG90IFx1bmRlcnNldHtcdGV4dHN0eWxlPTB9e1x1bmRlcmJyYWNle1AoXHRleHR7RGVmaWVyc30gXG1pZCBEPTEpfX0gXFwNCiYgPSBQKFx0ZXh0e0NvbXBsaWVyc30gXG1pZCBEPTEpIFxcDQomID0gUChEKDApPTAsIEQoMSk9MSBcbWlkIEQ9MSkgXFwNClxlbmR7YWxpZ25lZH0NCiQkDQoNClBsdWdnaW5nIHRoaXMgYmFjayBpbnRvIG91ciBwcmV2aW91cyBlcXVhdGlvbiB3ZSBnZXQ6DQoNCiQkDQpFWyBZKDEpLVkoMCkgXG1pZCBEKDApPTAsIEQoMSk9MSwgRD0xXSA9IFxmcmFje0VbIFkoMSxEKDEpKSAtIFkoMCxEKDApKSBcbWlkIEQ9MV19e0VbRCgxKSAtIEQoMCkgXG1pZCBEPTFdfSBccXVhZCBcYmxhY2tzcXVhcmUNCiQkDQoNCldoaWNoIHdlIHdhbnRlZCB0byBzaG93Lg0KDQpOb3cgd2Ugd2lsbCBwcm9jZWVkIHdpdGggdGhlIGlkZW50aWZpY2F0aW9uIG9mIHRoZSBMQVRUIHVuZGVyIHRoZSBzdGF0ZWQgYXNzdW1wdGlvbnMuIFdlIHN0YXJ0IHdpdGggdGhlIG51bWVyYXRvcjoNCg0KJCQNClxiZWdpbnthbGlnbmVkfQ0KJiBFWyBZKDEsRCgxKSkgLSBZKDAsRCgwKSkgXG1pZCBEPTFdIFxcDQomIFxzdGFja3JlbHtcdGV4dHsoQTIpfX17PX0gRVsgWShEKDEpKSAtIFkoRCgwKSkgXG1pZCBEPTFdIFxcDQomIFxzdGFja3JlbHtcdGV4dHsoTElFKX19ez19IEVbXHVuZGVyc2V0e1x0ZXh0c3R5bGU9MH17XHVuZGVyYnJhY2V7WSgxKSAtIFkoMSl9fSBcbWlkIEQoMSkgPSAxLCBEKDApPTEsIEQ9MV0gXGNkb3QgUChEKDEpID0gMSwgRCgwKT0xIFxtaWQgRD0xKSBcXA0KJiArIEVbWSgxKSAtIFkoMCkgXG1pZCBEKDEpID0gMSwgRCgwKT0wLCBEPTFdIFxjZG90IFAoRCgxKSA9IDEsIEQoMCk9MCBcbWlkIEQ9MSkgXFwNCiYgKyBFW1koMCkgLSBZKDEpIFxtaWQgRCgxKSA9IDAsIEQoMCk9MSwgRD0xXSBcY2RvdCBcdW5kZXJzZXR7XHRleHRzdHlsZT0wfXtcdW5kZXJicmFjZXtQKEQoMSkgPSAwLCBEKDApPTEgXG1pZCBEPTEpfX0gXFwNCiYgKyBFW1x1bmRlcnNldHtcdGV4dHN0eWxlPTB9e1x1bmRlcmJyYWNle1koMCkgLSBZKDApfX0gXG1pZCBEKDEpID0gMCwgRCgwKT0wLCBEPTFdIFxjZG90IFx1bmRlcnNldHtcdGV4dHN0eWxlPTB9e1x1bmRlcmJyYWNle1AoRCgxKSA9IDAsIEQoMCk9MCBcbWlkIEQ9MSl9fSBcXA0KJiA9IEVbWSgxKSAtIFkoMCkgXG1pZCBEKDEpID0gMSwgRCgwKT0wLCBEPTFdIFxjZG90IFAoRCgxKSA9IDEsIEQoMCk9MCBcbWlkIEQ9MSkgXFwNClxlbmR7YWxpZ25lZH0NCiQkIFdlIGNhbiBzZWUgdGhhdCBvbmx5IHRoZSBlZmZlY3Qgb24gY29tcGxpZXJzIHJlbWFpbnMgaW4gdGhlIGV4cHJlc3Npb24gYWJvdmUuDQoNCklmIHRoZSBpbnN0cnVtZW50IGlzIHJhbmRvbWx5IGFzc2lnbmVkIGFuZCB3ZSBsb29rIG9ubHkgYXQgdGhlIGNvbXBsaWVycywgaWYgRD0xIHRoaXMgaXMgZXF1aXZhbGVudCB0byBaPTEsIGFuZCBpZiBEPTAgdGhpcyBpcyBlcXVpdmFsZW50IHRvIFo9MC4gVGh1cyB3ZSBjYW4gcmV3cml0ZSB0aGUgYWJvdmUgZXhwcmVzc2lvbiBhczoNCg0KJCQNCkVbWSgxKSAtIFkoMCkgXG1pZCBEKDEpID0gMSwgRCgwKT0wLCBEPTFdIFxjZG90IFAoRCgxKSA9IDEsIEQoMCk9MCBcbWlkIEQ9MSkgPSBFW1koMSkgLSBZKDApIFxtaWQgRCgxKSA9IDEsIEQoMCk9MCwgWj0xXSBcY2RvdCBQKEQoMSkgPSAxLCBEKDApPTAgXG1pZCBEPTEpDQokJA0KDQpBZGRpdGlvbmFsbHkgaWYgKEExKSBob2xkIChaIGlzIHJhbmRvbWx5IGFzc2lnbmVkIGFuZCBzcGVjaWFsbHkgaW5kZXBlbmRlbnQgb2YgcG90ZW50aWFsIG91dGNvbWVzIGFuZCBwb3RlbnRpYWwgdHJlYXRtZW50cyksIHdlIGNhbiBkcm9wIHRoZSBjb25kaXRpb25pbmcgb24gWj0xOg0KDQokJA0KRVtZKDEpIC0gWSgwKSBcbWlkIEQoMSkgPSAxLCBEKDApPTAsIFo9MV0gPSBFW1koMSkgLSBZKDApIFxtaWQgRCgxKSA9IDEsIEQoMCk9MF0gPSBcdGF1X3tMQVRFfQ0KJCQNCg0KVGhpcyBpcyBlcXVhbCB0byB0aGUgTEFURSBlZmZlY3QuIFNvLCBXZSBpZGVudGlmaWVkIHRoZSBudW1lcmF0b3IgYXMgYSBzY2FsZWQgdmVyc2lvbiBvZiB0aGUgTEFURToNCg0KJCRFWyBZKDEsRCgxKSkgLSBZKDAsRCgwKSkgXG1pZCBEPTFdID0gXHRhdV97TEFURX0gXGNkb3QgUChEKDEpID0gMSwgRCgwKT0wIFxtaWQgRD0xKSQkDQoNCk5vdyB3ZSBwcm9jZWVkIHdpdGggdGhlIGRlbm9taW5hdG9yOg0KDQpXZSBhZ2FpbiBkZWNvbXBvc2UgdGhpcyB1c2luZyB0aGUgbGF3IG9mIGl0ZXJhdGVkIGV4cGVjdGF0aW9uczoNCg0KJCQNClxiZWdpbnthbGlnbmVkfQ0KJiBFW0QoMSkgLSBEKDApIFxtaWQgRD0xXSBcXA0KJiBcc3RhY2tyZWx7XHRleHR7KExJRSl9fXs9fSBFW1x1bmRlcnNldHtcdGV4dHN0eWxlPTB9e1x1bmRlcmJyYWNlezEgLSAxfX0gXG1pZCBEKDEpID0gMSwgRCgwKT0xLCBEPTFdIFxjZG90IFAoRCgxKSA9IDEsIEQoMCk9MSBcbWlkIEQ9MSkgXFwNCiYgKyBFWzEgLSAwIFxtaWQgRCgxKSA9IDEsIEQoMCk9MCwgRD0xXSBcY2RvdCBQKEQoMSkgPSAxLCBEKDApPTAgXG1pZCBEPTEpIFxcDQomICsgRVswIC0gMSBcbWlkIEQoMSkgPSAwLCBEKDApPTEsIEQ9MV0gXGNkb3QgXHVuZGVyc2V0e1x0ZXh0c3R5bGU9MH17XHVuZGVyYnJhY2V7UChEKDEpID0gMCwgRCgwKT0xIFxtaWQgRD0xKX19IFxcDQomICsgRVtcdW5kZXJzZXR7XHRleHRzdHlsZT0wfXtcdW5kZXJicmFjZXswIC0gMH19IFxtaWQgRCgxKSA9IDAsIEQoMCk9MCwgRD0xXSBcY2RvdCBcdW5kZXJzZXR7XHRleHRzdHlsZT0wfXtcdW5kZXJicmFjZXtQKEQoMSkgPSAwLCBEKDApPTAgXG1pZCBEPTEpfX0gXFwNCiYgPSAxIFxjZG90IFAoRCgxKSA9IDEsIEQoMCk9MCBcbWlkIEQ9MSkgXFwNClxlbmR7YWxpZ25lZH0NCiQkDQoNCk5vdyB3ZSBwbHVnIHRoZSBudW1lcmF0b3IgYW5kIGRlbm9taW5hdG9yIGJhY2sgaW50byBvdXIgZXhwcmVzc2lvbiBmb3IgJFx0YXVfe0xBVFR9JDoNCg0KJCQNClx0YXVfe0xBVFR9ID0gXGZyYWN7XHRhdV97TEFURX0gXGNkb3QgUChEKDEpID0gMSwgRCgwKT0wIFxtaWQgRD0xKX17UChEKDEpID0gMSwgRCgwKT0wIFxtaWQgRD0xKX0gPSBcdGF1X3tMQVRFfQ0KJCQNCg0KV2UgaGF2ZSBzaG93biB0aGF0IHVuZGVyIHJhbmRvbSBhc3NpZ25tZW50IG9mIFogdGhhdCB0aGUgTEFUVCBpcyBlcXVhbCB0byB0aGUgTEFURS4NCg0KRnJvbSB0aGUgbGVjdHVyZSB3ZSBrbm93IHRoZSBMQVRFIGlzIGlkZW50aWZpZWQgYXM6DQoNCiQkDQpcdGF1X3tMQVRFfSA9IFxmcmFje0VbWSBcbWlkIFo9MV0gLSBFW1kgXG1pZCBaPTBdfXtFW0QgXG1pZCBaPTFdIC0gRVtEIFxtaWQgWj0wXX0gPSBcdGF1X3tMQVRUfSBccXVhZCBcYmxhY2tzcXVhcmUNCiQkDQoNClRoZXJlZm9yZSB3ZSBoYXZlIHNob3cgaWRlbnRpZmljYXRpb24gb2YgdGhlIExBVFQuDQoNCiMjIyAyLjMgSW5mbHVlbmNlIGZ1bmN0aW9uIGRlcml2YXRpb24NCg0KV2UgaGF2ZSBzaG93biBpbiB0aGUgcHJldmlvdXMgc2VjdGlvbiB0aGF0IHRoZSBMQVRUIGNhbiBiZSBleHByZXNzZWQgYXMgYSByYXRpbyBvZiB0d28gQVRUcy4gQXMgd2Uga25vdyB0aGUgTmV5bWFuIG9ydGhvZ29uYWwgc2NvcmUgZm9yIHRoZSBBVFQsIHdlIGNhbiB1c2UgdGhlIGNoYWluIHJ1bGUgdG8gZGVyaXZlIGFuIGluZmx1ZW5jZSBmdW5jdGlvbiBmb3IgdGhlIExBVFQuDQoNClRoZSBOZXltYW4gb3J0aG9nb25hbCBzY29yZSBvZiB0aGUgQVRUIGlzIGdpdmVuIGJ5Og0KDQokJA0KXHBoaV97QVRUfShXOyBcZXRhKSA9IFx1bmRlcnNldHtcdGV4dHN0eWxlPVx0aWxkZXtZfV97QVRUfX17XHVuZGVyYnJhY2V7IFxmcmFje1d9e2V9KFkgLSBtKDAsWCkpIC0gXGZyYWN7MS1EfXtlKDEtZShYKSl9KFkgLSBtKDAsWCkpfX0gIC0gXHRhdV97QVRUfSBcZnJhY3tXfXtlfQ0KJCQNCg0KV2l0aCAkTz0oRCxYLFkpJCwgJFx0aGV0YSA9IFx0YXVfe0FUVH0kLCAkXGV0YSA9IChtKDAsWCksIGUoWCksIGUpXjEkIGFuZCB0aGUgdHdvIGxpbmVhciBzY29yZSBjb21wb25lbnRzICRccGhpX2EgPSBcdGlsZGV7WX1fe0FUVH0kIGFuZCAkXHBoaV9iID0gKC0xKVxmcmFje1d9e2V9JC4NCg0KTGV0J3MgdGFpbG9yIHRoaXMgc2NvcmUgZnVuY3Rpb24gbm93IHRvIHRoZSB0d28gc3BlY2lmaWMgQVRUcyB3ZSBoYXZlLg0K</div>
+<div id="rmd-source-code">LS0tDQp0aXRsZTogIkdyb3VwIEFzc2lnbm1lbnQgQ2F1c2FsIE1hY2hpbmUgTGVhcm5pbmciDQphdXRob3JzOiAiRWdvciBUcnVzaGtvdiwgNjY3Mjg3NDsgRG9taW5pYyBQw7ZsdGwsIDY2MTg2NzAiDQpkYXRlOiAiYHIgU3lzLkRhdGUoKWAiDQpvdXRwdXQ6DQogIGh0bWxfbm90ZWJvb2s6DQogICAgdG9jOiB0cnVlDQogICAgdG9jX2Zsb2F0OiB0cnVlDQogICAgY29kZV9mb2xkaW5nOiBzaG93DQotLS0NCg0KIyMjIDIuMSBMaXRlcmF0dXJlIFJldmlldw0KDQouLi4NCg0KIyMjIDIuMiBJZGVudGlmaWNhdGlvbiBvZiBMQVRUL0xBVFUNCg0KIyMjIyBMQVRUDQoNClRvIGlkZW50aWZ5IHRoZSBMQVRUIHdlIHVzZSB0aGUgZm9sbG93aW5nIHN0YW5kYXJkIElWIGFzc3VtcHRpb25zOg0KDQooQTEpIFJhbmRvbSBBc3NpZ25tZW50IG9mIFo6ICRaIFxwZXJwIChZKDEpLCBZKDApLCBEKDEpLCBEKDApKSBcbWlkIFgkDQoNCihBMikgRXhjbHVzaW9uIFJlc3RyaWN0aW9uOiAkWSh6LEQoeikpID0gWShEKHopKSQgZm9yIGFsbCAkeiQNCg0KVGhpcyBhbHNvIGltcGxpZXM6DQoNCiQkDQoNClkoRCgxKSkgPSBZKDEpRCgxKSArIFkoMCkoMS1EKDEpKSBcXA0KDQpZKEQoMCkpID0gWSgxKUQoMCkgKyBZKDApKDEtRCgwKSkNCg0KJCQNCg0KKEEzKSBSZWxldmFuY2U6ICRFW0QoMSldIFxuZXEgRVtEKDApXSQNCg0KQWRkaXRpb25hbGx5IHdlIGltcG9zZSB0aGUgYXNzdW1wdGlvbiBvZiBtb25vdG9uaWNpdHkgYW5kIHJ1bGUgb3V0IGRlZmllcnM6DQoNCihBNCkgTW9ub3RvbmljaXR5OiAkUChEKDEpIFxnZXEgRCgwKSkgPSAxJA0KDQooQTUpIENvbnNpc3RlbmN5OiAkRCA9IEQoWikkIGFuZCAkWSA9IFkoeixEKHopKSBcc3RhY2tyZWx7XHRleHR7KEEyKX19ez19IFkoRCh6KSkkDQoNCkZpcnN0IHdlIG5lZWQgdG8gc2hvdywgdGhhdCAkXHRhdV97TEFUVH0kIHRoYXQgaXMgZGVmaW5lZCBhcyAkXHRhdV97TEFUVH0gPSBFW1koMSktWSgwKSBcbWlkIEQoMCk9MCwgRCgxKT0xLCBEPTFdJCBjYW4gYmUgd3JpdHRlbiBhcyB0aGUgcmF0aW8gb2YgdGhlIEFUVCBvZiB0aGUgaW5zdHJ1bWVudCBvbiB0aGUgb3V0Y29tZSBhbmQgdGhlIEFUVCBvZiB0aGUgaW5zdHJ1bWVudCBvbiB0aGUgdHJlYXRtZW50Og0KDQokJFx0YXVfe0xBVFR9ID0gXGZyYWN7RVsgWSgxLEQoMSkpIC0gWSgwLEQoMCkpIFxtaWQgRD0xXX0ge0VbRCgxKSAtIEQoMCkgXG1pZCBEPTFdfSQkDQoNCldlIHN0YXJ0IHRoaXMgcHJvb2Ygd2l0aCB0aGUgbnVtZXJhdG9yIG9mIHRoZSBzZWNvbmQgdGVybToNCg0KJCQNClxiZWdpbnthbGlnbmVkfQ0KJiBFWyBZKDEsRCgxKSkgLSBZKDAsRCgwKSkgXG1pZCBEPTFdIFxcDQomIFxzdGFja3JlbHtcdGV4dHsoQTIpfX17PX0gRVsgWShEKDEpKSAtIFkoRCgwKSkgXG1pZCBEPTFdIFxcDQomID0gRVsgWSgxKUQoMSkgKyBZKDApKDEtRCgxKSkgLSAoWSgxKUQoMCkgKyBZKDApKDEtRCgwKSkpIFxtaWQgRD0xXSBcXA0KJj0gRVtZKDEpRCgxKSArIFkoMCkgLSBZKDApRCgxKSAtIFkoMSlEKDApIC0gWSgwKSArIFkoMClEKDApIFxtaWQgRD0xXSBcXA0KJiA9IEVbIFkoMSkoRCgxKS1EKDApKSArIFkoMCkoRCgwKS1EKDEpKSBcbWlkIEQ9MV0gXFwNCiYgPSBFWyAoWSgxKS1ZKDApKShEKDEpLUQoMCkpIFxtaWQgRD0xXSBcXA0KXGVuZHthbGlnbmVkfQ0KJCQNCg0KV2UgY2FuIGRpdmlkZSB0aGlzIGJhc2VkIG9uIGZvdXIgZGlmZmVlcmVudCBjb21wbGlhbmNlIHR5cGVzOg0KDQoxLiAgQWx3YXlzIFRha2VyczogJEQoMSk9MSwgRCgwKT0xIFxpbXBsaWVzIEQoMSkgLSBEKDApID0gMCQNCjIuICBOZXZlciBUYWtlcnM6ICREKDEpPTAsIEQoMCk9MCBcaW1wbGllcyBEKDEpIC0gRCgwKSA9IDAkDQozLiAgQ29tcGxpZXJzOiAkRCgxKT0xLCBEKDApPTAgXGltcGxpZXMgRCgxKSAtIEQoMCkgPSAxJA0KNC4gIERlZmllcnM6ICREKDEpPTAsIEQoMCk9MSBcaW1wbGllcyBEKDEpIC0gRCgwKSA9IC0xJA0KDQpVbmRlciBvdXIgbW9ub3RvbmljaXR5IGFzc3VtcHRpb24gKEE0KSB3ZSBjYW4gcnVsZSBvdXQgZGVmaWVycy4gRm9ybWFsbHkgdGhpcyBpbXBsaWVzIHRoYXQgJFAoRCgxKSAtIEQoMCkgPSAtMSApID0gUChEZWZpZXJzKSA9IFAoRGVmaWVycyBcbWlkIEQ9MSkgPSAwJC4NCg0KQWxzbywgd2hlbiB3ZSBjb25kaXRpb24gb24gRCA9IDEsIG5ldmVyIHRha2VycyBhcmUgbm90IGluY2x1ZGVkIGluIHRoaXMgZ3JvdXAsIHNpbmNlIHRoZXkgbmV2ZXIgdGFrZSB0aGUgdHJlYXRtZW50IHJlZ2FyZGxlc3Mgb2YgdGhlIGluc3RydW1lbnQgdmFsdWUuIFRodXMsIHdoZW4gd2UgY29uZGl0aW9uIG9uIEQgPSAxLCB0aGUgb25seSBjb21wbGlhbmNlIHR5cGVzIHRoYXQgcmVtYWluIGFyZSBhbHdheXMgdGFrZXJzIGFuZCBjb21wbGllcnMuIEZvcm1hbGx5LCAkUChOZXZlciBUYWtlcnMgfCBEPTEpID0gMCQuDQoNCldlIGNhbiByZXdpdGUgb3VyIHByZXZpb3VzIGVxdWF0aW9uIHVzaW5nIHRoZSBsYXcgb2YgaXRlcmF0ZWQgZXhwZWN0YXRpb25zIGFuZCBjb25kaXRpb25pbmcgb24gdGhlIGNvbXBsaWFuY2UgdHlwZXM6DQoNCiQkDQpcYmVnaW57YWxpZ25lZH0NCiYgRVsgKFkoMSktWSgwKSkoRCgxKS1EKDApKSBcbWlkIEQ9MV0gXFwNCiYgXHN0YWNrcmVse1x0ZXh0eyhMSUUpfX17PX0gRVsgKFkoMSktWSgwKSkoRCgxKS1EKDApKSBcbWlkIEQ9MSwgXHRleHR7QWx3YXlzIFRha2Vyc31dIFxjZG90IFAoXHRleHR7QWx3YXlzIFRha2Vyc30gXG1pZCBEPTEpIFxcDQomICsgRVsgKFkoMSktWSgwKSkoRCgxKS1EKDApKSBcbWlkIEQ9MSwgXHRleHR7TmV2ZXIgVGFrZXJzfV0gXGNkb3QgXHVuZGVyc2V0e1x0ZXh0c3R5bGU9MH17XHVuZGVyYnJhY2V7UChcdGV4dHtOZXZlciBUYWtlcnN9IFxtaWQgRD0xKX19IFxcDQomICsgRVsgKFkoMSktWSgwKSkoRCgxKS1EKDApKSBcbWlkIEQ9MSwgXHRleHR7Q29tcGxpZXJzfV0gXGNkb3QgUChcdGV4dHtDb21wbGllcnN9IFxtaWQgRD0xKSBcXA0KJiArIEVbIChZKDEpLVkoMCkpKEQoMSktRCgwKSkgXG1pZCBEPTEsIFx0ZXh0e0RlZmllcnN9XSBcY2RvdCBQKFx0ZXh0e0RlZmllcnN9IFxtaWQgRD0xKSBcXA0KJiBcc3RhY2tyZWx7XHRleHR7KEE0KX19ez19IDAgXGNkb3QgUChcdGV4dHtBbHdheXMgVGFrZXJzfSBcbWlkIEQ9MSkgXFwNCiYgKyAwIFxjZG90IFAoXHRleHR7TmV2ZXIgVGFrZXJzfSBcbWlkIEQ9MSkgXFwNCiYgKyBFWyAoWSgxKS1ZKDApKSBcY2RvdCAxIFxtaWQgRD0xLCBcdGV4dHtDb21wbGllcnN9XSBcY2RvdCBQKFx0ZXh0e0NvbXBsaWVyc30gXG1pZCBEPTEpIFxcDQomICsgKC0xKSBcY2RvdCBcdW5kZXJzZXR7XHRleHRzdHlsZT0wfXtcdW5kZXJicmFjZXtQKFx0ZXh0e0RlZmllcnN9IFxtaWQgRD0xKX19IFxcDQomID0gRVsgWSgxKS1ZKDApIFxtaWQgRD0xLCBcdGV4dHtDb21wbGllcnN9XSBcY2RvdCBQKFx0ZXh0e0NvbXBsaWVyc30gXG1pZCBEPTEpIFxcDQomID0gRVsgWSgxKS1ZKDApIFxtaWQgRCgwKT0wLCBEKDEpPTEsIEQ9MV0gXGNkb3QgUChEKDApPTAsIEQoMSk9MSBcbWlkIEQ9MSkgXFwNClxlbmR7YWxpZ25lZH0NCiQkDQoNCldlIGhhdmUgc2hvdyB0aGUgZXF1aXZhbGVuY2Ugb2Y6DQoNCiQkDQpFWyBZKDEsRCgxKSkgLSBZKDAsRCgwKSkgXG1pZCBEPTFdID0gRVsgWSgxKS1ZKDApIFxtaWQgRCgwKT0wLCBEKDEpPTEsIEQ9MV0gUChEKDApPTAsIEQoMSk9MSBcbWlkIEQ9MSkNCiQkDQoNCk5vdyB3ZSBjYW4gcmVhcnJhbmdlIHRoaXMgdG8gZXhwcmVzcyAkXHRhdV97TEFUVH0kOg0KDQokJA0KRVsgWSgxKS1ZKDApIFxtaWQgRCgwKT0wLCBEKDEpPTEsIEQ9MV0gPSBcZnJhY3tFWyBZKDEsRCgxKSkgLSBZKDAsRCgwKSkgXG1pZCBEPTFdfXtQKEQoMCk9MCwgRCgxKT0xIFxtaWQgRD0xKX0NCiQkDQoNCk5vdyB3ZSBzaG93IHRoYXQgdGhlIGRlbm9taW5hdG9yIGNhbiBiZSB3cml0dGVuIGFzICRFW0QoMSkgLSBEKDApIFxtaWQgRD0xXSQ6DQoNCiQkDQpcYmVnaW57YWxpZ25lZH0NCiYgRVtEKDEpIC0gRCgwKSBcbWlkIEQ9MV0gXFwNCiYgXHN0YWNrcmVse1x0ZXh0eyhMSUUpfX17PX0gRVtEKDEpIC0gRCgwKSBcbWlkIEQ9MSwgXHRleHR7QWx3YXlzIFRha2Vyc31dIFxjZG90IFAoXHRleHR7QWx3YXlzIFRha2Vyc30gXG1pZCBEPTEpIFxcDQomICsgRVtEKDEpIC0gRCgwKSBcbWlkIEQ9MSwgXHRleHR7TmV2ZXIgVGFrZXJzfV0gXGNkb3QgIFx1bmRlcnNldHtcdGV4dHN0eWxlPTB9e1x1bmRlcmJyYWNle1AoXHRleHR7TmV2ZXIgVGFrZXJzfSBcbWlkIEQ9MSl9fSBcXA0KJiArIEVbRCgxKSAtIEQoMCkgXG1pZCBEPTEsIFx0ZXh0e0NvbXBsaWVyc31dIFxjZG90IFAoXHRleHR7Q29tcGxpZXJzfSBcbWlkIEQ9MSkgXFwNCiYgKyBFW0QoMSkgLSBEKDApIFxtaWQgRD0xLCBcdGV4dHtEZWZpZXJzfV0gXGNkb3QgUChcdGV4dHtEZWZpZXJzfSBcbWlkIEQ9MSkgXFwNCiYgXHN0YWNrcmVse1x0ZXh0eyhBNCl9fXs9fSAwIFxjZG90IFAoXHRleHR7QWx3YXlzIFRha2Vyc30gXG1pZCBEPTEpIFxcDQomICsgMCBcY2RvdCBQKFx0ZXh0e05ldmVyIFRha2Vyc30gXG1pZCBEPTEpIFxcDQomICsgMSBcY2RvdCBQKFx0ZXh0e0NvbXBsaWVyc30gXG1pZCBEPTEpIFxcDQomICsgKC0xKSBcY2RvdCBcdW5kZXJzZXR7XHRleHRzdHlsZT0wfXtcdW5kZXJicmFjZXtQKFx0ZXh0e0RlZmllcnN9IFxtaWQgRD0xKX19IFxcDQomID0gUChcdGV4dHtDb21wbGllcnN9IFxtaWQgRD0xKSBcXA0KJiA9IFAoRCgwKT0wLCBEKDEpPTEgXG1pZCBEPTEpIFxcDQpcZW5ke2FsaWduZWR9DQokJA0KDQpQbHVnZ2luZyB0aGlzIGJhY2sgaW50byBvdXIgcHJldmlvdXMgZXF1YXRpb24gd2UgZ2V0Og0KDQokJA0KRVsgWSgxKS1ZKDApIFxtaWQgRCgwKT0wLCBEKDEpPTEsIEQ9MV0gPSBcZnJhY3tFWyBZKDEsRCgxKSkgLSBZKDAsRCgwKSkgXG1pZCBEPTFdfXtFW0QoMSkgLSBEKDApIFxtaWQgRD0xXX0gXHF1YWQgXGJsYWNrc3F1YXJlDQokJA0KV2hpY2ggd2Ugd2FudGVkIHRvIHNob3cuDQoNCldlIHdpbGwgbm93IHVzZSB0aGlzIHJlc3VsdCB0byBzaG93IGlkZW50aWZpY2F0aW9uIG9mICRcdGF1X3tMQVRUfSQgdW5kZXIgb3VyIElWIGFzc3VtcHRpb25zIChBMSktKEE1KS4NCg0KU3RhcnRpbmcgd2l0aCB0aGUgbnVtZXJhdG9yOg0KDQpXZSB3aWxsIHByb2NlZCB0aG8gc2hvdyB0aGF0IHRoZSBudW1lcmF0b3IgaXMgaWRlbnRpZmVkIGJ5IGZvbGx3aW5nIEFJUFcgc3RydWN0dXJlLCB3aGljaCB3ZSBjYW4gc3BsaXQgaW4gcmVncmVzc2lvbiBhbmQgY29ycmVjdGlvbiBwYXJ0Og0KDQokJFxmcmFjezF9e1AoRD0xKX0gRSBcbGVmdFsgWiBZIC0gXGxlZnQoIFx1bmRlcnNldHtcdGV4dHtSZWdyZXNzaW9uIFBhcnR9fXtcdW5kZXJicmFjZXtQKFo9MXxYKSBFW1l8WCwgWj0wXX19ICsgXHVuZGVyc2V0e1x0ZXh0e0NvcnJlY3Rpb24gUGFydH19e1x1bmRlcmJyYWNle1xmcmFje1AoWj0xfFgpKDEtWikoWSAtIEVbWXxYLCBaPTBdKX17MSAtIFAoWj0xfFgpfX19IFxyaWdodCkgXHJpZ2h0XSQkDQoNCg0KV2Ugc3RhcnQgYnkgYmFzaWMgcmV3cml0aW5nLg0KDQpXZSBoYXZlIGFscmVhZHkgc2hvd24gdGhhdCB3ZSBjYW4gdXNlIHRoZSBleGNsdXNpb24gcmVzdHJpY3Rpb24gKEEyKSB0byByZXdyaXRlIHRoZSBudW1lcmF0b3IgYXM6DQoNCiQkDQpFWyBZKDEsRCgxKSkgLSBZKDAsRCgwKSkgXG1pZCBEPTFdID0gRVsgWShEKDEpKSAtIFkoRCgwKSkgXG1pZCBEPTFdDQokJA0KDQpCeSB0aGUgZGVmaW5pdGlvbiBvZiBjb25kaXRpb25hbCBleHBlY3RhdGlvbiB3ZSBjYW4gd3JpdGUgdGhpcyBhczoNCg0KJCQNCkVbIFkoRCgxKSkgLSBZKEQoMCkpIFxtaWQgRD0xIF0gPSBcZnJhY3tFWyAoWShEKDEpKSAtIFkoRCgwKSkpIFxjZG90IEQgXX17UChEPTEpfQ0KJCQNCg0KV2UgY2FuIGFnYWluIGlkZW50aWZ5IDQgdHlwZXM6DQoNCjEuIEFsd2F5cyBUYWtlcnM6ICREKDEpPTEsIEQoMCk9MSBcaW1wbGllcyBZKEQoMSkpIC0gWShEKDApKSA9IDAkDQoyLiBOZXZlciBUYWtlcnM6ICREKDEpPTAsIEQoMCk9MCBcaW1wbGllcyBZKEQoMSkpIC0gWShEKDApKSA9IDAkDQozLiBDb21wbGllcnM6ICREKDEpPTEsIEQoMCk9MCBcaW1wbGllcyBZKEQoMSkpIC0gWShEKDApKSA9IFkoMSkgLSBZKDApJA0KNC4gRGVmaWVyczogUnVsZWQgb3V0IGJ5IE1vbnRvbmljaXR5IChBNCkNCg0KU28gdGhlIHRlcm0gJEVbIChZKEQoMSkpIC0gWShEKDApKSkgXGNkb3QgRCBdJCBpcyBub24temVybyBvbmx5IGZvciBjb21wbGllcnMuIFdlIGFsc28gYWxyZWFkeSBrbm93IGZyb20gYWJvdmUgdGhhdCBmb3IgY29tcGxpZXMgJEQ9WiQuIFRoZXJlZm9yZSB3ZSBjYW4gIHJlcGxhY2UgJEQkIGluIHRoZSBudW1lcmF0b3IgZXhwZWN0YXRpb246DQoNCiQkRVsgKFkoRCgxKSkgLSBZKEQoMCkpKSBcY2RvdCBEIF0gPSBFWyAoWShEKDEpKSAtIFkoRCgwKSkpIFxjZG90IFogXSQkDQoNCk5vdyBsZXQncyBmb2N1cyBvbiB0aGUgcmVncmVzc2lvbiBwYXJ0Og0KDQokJEVbIFAoWj0xfFgpIEVbWXxYLCBaPTBdIF0kJA0KDQpVc2luZyBDb25zaXN0ZW5jeSBhbmQgKEExIC0gJFogXHBlcnAgWShEKDApKSBcbWlkIFgkKSB3ZSBjYW4gd3JpdGU6DQoNCiQkDQpcYmVnaW57YWxpZ25lZH0NCiYgRVsgUChaPTF8WCkgRVtZfFgsIFo9MF0gXSBcXA0KJiBcc3RhY2tyZWx7XHRleHR7KEE1KX19ez19IEVbIFAoWj0xfFgpIEVbWShEKDApKXxYLFo9MF0gXFwNCiYgXHN0YWNrcmVse1x0ZXh0eyhBMSl9fXs9fSBFWyBQKFo9MXxYKSBFW1lEKDApfFhdIF0gXFwNCiYgPSBFWyBFW1p8WF0gRVtZKEQoMCkpfFhdIF0gXFwNCiYgPSBFWyBFW1ogIFkoRCgwKSl8WF0gXSBcXA0KJiA9IEVbIFogWShEKDApKSBdDQpcZW5ke2FsaWduZWR9DQokJA0KDQpOb3cgbGV0J3MgbG9vayBhdCB0aGUgY29ycmVjdGlvbiBwYXJ0Og0KDQokJEUgXGxlZnRbIFxmcmFje1AoWj0xfFgpfXsxIC0gUChaPTF8WCl9ICgxLVopIChZIC0gRVtZfFgsIFo9MF0pIFxyaWdodF0kJA0KDQpCeSAoQTEpIFJhbmRvbSBBc3NpZ25tZW50IGFuZCAoQTIpIEV4Y2x1c2lvbiBhbmQgKEE1KSBDb25zaXN0ZW5jeTogDQoNCiQkDQpcYmVnaW57YWxpZ25lZH0NCiYgRVtZfFgsIFo9MF0gXFwNCiYgXHN0YWNrcmVse1x0ZXh0eyhBNSZBMil9fXs9fSBFW1koRCgwKSl8WCwgWj0wXSBcXA0KJiBcc3RhY2tyZWx7XHRleHR7KEExKX19ez19IEVbWShEKDApKXxYXSBcXA0KXGVuZHthbGlnbmVkfQ0KJCQNCg0KTGV0J3MgcGx1ZyB0aGlzIGluIHRoZSBjb3JyZWN0aW9uIHBhcnQgYW5kIGFwcGx5IHRoZSBMSUU6DQoNCiQkDQpcYmVnaW57YWxpZ25lZH0NCiYgRSBcbGVmdFsgXGZyYWN7UChaPTF8WCl9ezEgLSBQKFo9MXxYKX0gKDEtWikgKFkgLSBFW1l8WCwgWj0wXSkgXHJpZ2h0XSBcXA0KJiA9IEUgXGxlZnRbIFxmcmFje1AoWj0xfFgpfXsxIC0gUChaPTF8WCl9ICgxLVopIChZIC0gRVtZKEQoMCkpfFhdKSBccmlnaHRdIFxcDQomIFxzdGFja3JlbHtcdGV4dHsoTElFKX19ez19IEUgXGxlZnRbIEUgXGxlZnRbIFxmcmFje1AoWj0xfFgpfXsxIC0gUChaPTF8WCl9ICgxLVopIChZIC0gRVtZKEQoMCkpfFhdKSBcbWlkIFggXHJpZ2h0XSBccmlnaHRdIFxcDQomID0gRSBcbGVmdFsgXGZyYWN7UChaPTF8WCl9ezEgLSBQKFo9MXxYKX0gRSBcbGVmdFsgKDEtWikgKFkgLSBFW1koRCgwKSl8WF0pIFxtaWQgWCBccmlnaHRdIFxyaWdodF0gXFwNClxlbmR7YWxpZ25lZH0NCiQkDQpGb2N1cyBvbiB0aGUgaW5uZXIgcGFydCBhbmQgYXBwbHkgdGhlIExJRSBhZ2FpbjoNCg0KJCQNClxiZWdpbnthbGlnbmVkfQ0KJiBFIFxsZWZ0WyAoMS1aKSAoWSAtIEVbWShEKDApKXxYXSkgXG1pZCBYIFxyaWdodF0gXFwNCiYgXHN0YWNrcmVse1x0ZXh0eyhMSUUpfX17PX0gXCBFWygxLTEpKFktRVtZKEQoMCkpfFhdKSBcbWlkIFgsIFo9MV0gXGNkb3QgUChaPTEgXG1pZCBYKSBcXA0KJiArIEVbKDEtMCkoWS1FW1koRCgwKSl8WF0pIFxtaWQgWCwgWj0wXSBcY2RvdCBQKFo9MCBcbWlkIFgpIFxcDQomID0gIEVbKFktRVtZKEQoMCkpfFhdKSBcbWlkIFgsIFo9MF0gXGNkb3QgUChaPTAgXG1pZCBYKSBcXA0KJiA9ICgxIC0gUChaPTF8WCkpIFxjZG90IChFW1kgXG1pZCBYLCBaPTBdIC0gRVtZKEQoMCkpfFhdKSBcXA0KJiBcc3RhY2tyZWx7XHRleHR7KEExJkE1JkEyKX19ez19ICgxIC0gUChaPTF8WCkpIFxjZG90ICggRVtZKEQoMCkpIFxtaWQgWF0gLSBFW1koRCgwKSl8WF0pIFxcDQomID0gMCBcXA0KXGVuZHthbGlnbmVkfQ0KJCQNCk5vdyB3ZSBsb29rIGF0IHRoZSBmdWxsIEFJUFcgcmVwcmVzZW50YXRpb24gb2YgdGhlIG51bWVyYXRvciBhZ2Fpbiwgd2hpY2ggd2Ugd3JvdGUgYXM6DQoNCiQkRSBcbGVmdFsgWiBZIC0gXGxlZnQoIFx0ZXh0e1JlZ3Jlc3Npb24gUGFydH0gKyBcdGV4dHtDb3JyZWN0aW9uIFBhcnR9IFxyaWdodCkgXHJpZ2h0XSQkDQoNCldlIGhhdmUgc2hvd24gdGhhdCB0aGUgcmVncmVzc2lvbiBwYXJ0IGlzIGVxdWFsIHRvICRFWyBaIFkoRCgwKSkgXSQgYW5kIHRoZSBjb3JyZWN0aW9uIHBhcnQgaXMgZXF1YWwgdG8gMC4gQWRkaXRpb25hbGx5IHNpbmNlICRaPTEkIHVuZGVyIENvbnNpc3RlbmN5ICREPUQoMSkkIGFuZCAgJFkgPSBZKEQoMSkpJC4gVGhlbiB0aGUgZmlyc3QgcGFydCBiZWNvbWVzOg0KDQokJEVbWlldID0gRVtaIFkoRCgxKSldJCQNCg0KUHV0dGluZyBldmVyeXRoaW5nIHRvZ2V0aGVyIHdlIGFuZCByZW1lYmVyaW5nIG91ciBmaXJzdCByZXN1bHQgd2hlbiByZXdyaXRpbmcgJCBcZnJhY3tFWyBaIChZKEQoMSkpIC0gWShEKDApKSkgXX17UChEPTEpfSA9IEVbIFkoRCgxKSkgLSBZKEQoMCkpIFxtaWQgRD0xIF0gJCB3ZSBnZXQ6DQoNCiQkDQpcYmVnaW57YWxpZ25lZH0NCiYgXGZyYWN7MX17UChEPTEpfSBFIFxsZWZ0WyBaIFkgLSBcbGVmdCggXHRleHR7UmVncmVzc2lvbiBQYXJ0fSArIFx0ZXh0e0NvcnJlY3Rpb24gUGFydH0gXHJpZ2h0KSBccmlnaHRdIFxcDQomID0gXGZyYWN7MX17UChEPTEpfSBFW1ogWShEKDEpKV0gLSBFWyBaIFkoRCgwKSkgXSBcXA0KJiA9IFxmcmFje0VbIFogKFkoRCgxKSkgLSBZKEQoMCkpKSBdfXtQKEQ9MSl9IFxcDQomID0gRVsgWShEKDEpKSAtIFkoRCgwKSkgXG1pZCBEPTEgXSBcXCANClxlbmR7YWxpZ25lZH0NCiQkDQpUaGVyZWZvcmUgd2UgaGF2ZSBzaG93biB0aGF0IHRoZSBudW1lcmF0b3IgaXMgaWRlbnRpZmllZCBieSB0aGUgQUlQVyBzdHJ1Y3R1cmUgYWJvdmUuDQoNCkxldCdzIGRvIHRoZSBzYW1lIGZvciB0aGUgZGVub21pbmF0b3I6DQoNCldlIHdpbGwgcHJvY2VlZCB0aG8gc2hvdyB0aGF0IHRoZSBkZW5vbWluYXRvciBpcyBpZGVudGlmaWVkIGJ5IHRoZSBzYW1lIEFJUFcgc3RydWN0dXJlOg0KDQokJFxmcmFjezF9e1AoRD0xKX0gRSBcbGVmdFsgWiBEIC0gXGxlZnQoIFx1bmRlcnNldHtcdGV4dHtSZWdyZXNzaW9uIFBhcnR9fXtcdW5kZXJicmFjZXtQKFo9MXxYKSBFW0R8WCwgWj0wXX19ICsgXHVuZGVyc2V0e1x0ZXh0e0NvcnJlY3Rpb24gUGFydH19e1x1bmRlcmJyYWNle1xmcmFje1AoWj0xfFgpKDEtWikoRCAtIEVbRHxYLCBaPTBdKX17MSAtIFAoWj0xfFgpfX19IFxyaWdodCkgXHJpZ2h0XSQkDQoNCkxldCdzIHJld3JpdGUgYWdhaW46DQoNCiQkRVsgRCgxKSAtIEQoMCkgXG1pZCBEPTFdJCQNCg0KQnkgdGhlIGRlZmluaXRpb24gb2YgY29uZGl0aW9uYWwgZXhwZWN0YXRpb24gd2UgY2FuIHdyaXRlIHRoaXMgYXM6DQokJEVbIEQoMSkgLSBEKDApIFxtaWQgRD0xIF0gPSBcZnJhY3tFWyAoRCgxKSAtIEQoMCkpIFxjZG90IEQgXX17UChEPTEpfSQkDQpXZSBjYW4gYWdhaW4gaWRlbnRpZnkgNCB0eXBlczoNCg0KMS4gQWx3YXlzIFRha2VyczogJEQoMSk9MSwgRCgwKT0xIFxpbXBsaWVzIEQoMSkgLSBEKDApID0gMCQNCjIuIE5ldmVyIFRha2VyczogJEQoMSk9MCwgRCgwKT0wIFxpbXBsaWVzIEQoMSkgLSBEKDApID0gMCQNCjMuQ29tcGxpZXJzOiAkRCgxKT0xLCBEKDApPTAgXGltcGxpZXMgRCgxKSAtIEQoMCkgPSAxJA0KNC5EZWZpZXJzOiBSdWxlZCBvdXQgYnkgTW9udG9uaWNpdHkgKEE0KQ0KDQpTbyB0aGUgdGVybSAkRVsgKEQoMSkgLSBEKDApKSBcY2RvdCBEIF0kIGlzIG5vbi16ZXJvIG9ubHkgZm9yIGNvbXBsaWVycy4gV2UgYWxzbyBhbHJlYWR5IGtub3cgZnJvbSBhYm92ZSB0aGF0IGZvciBjb21wbGllcyAkRD1aJC4gVGhlcmVmb3JlIHdlIGNhbiAgcmVwbGFjZSAkRCQgKHRoZSBtdWx0aXBsaWVyKSBpbiB0aGUgZGVub21pbmF0b3IgZXhwZWN0YXRpb246DQoNCiQkRVsgKEQoMSkgLSBEKDApKSBcY2RvdCBEIF0gPSBFWyAoRCgxKSAtIEQoMCkpIFxjZG90IFogXSQkDQpOb3cgbGV0J3MgZm9jdXMgb24gdGhlIHJlZ3Jlc3Npb24gcGFydDoNCg0KJCRFWyBQKFo9MXxYKSBFW0R8WCwgWj0wXSBdJCQNCg0KVXNpbmcgQ29uc2lzdGVuY3kgYW5kIChBMSAtICRaIFxwZXJwIEQoMCkgXG1pZCBYJCkgd2UgY2FuIHdyaXRlOg0KDQokJFxiZWdpbnthbGlnbmVkfQ0KJiBFWyBQKFo9MXxYKSBFW0R8WCwgWj0wXSBdIFxcDQomIFxzdGFja3JlbHtcdGV4dHsoQTUpfX17PX0gRVsgUChaPTF8WCkgRVtEKDApfFgsWj0wXSBcXA0KJiBcc3RhY2tyZWx7XHRleHR7KEExKX19ez19IEVbIFAoWj0xfFgpIEVbRCgwKXxYXSBdIFxcDQomID0gRVsgRVtafFhdIEVbRCgwKXxYXSBdIFxcDQomID0gRVsgRVtaICBEKDApfFhdIF0gXFwNCiYgPSBFWyBaIEQoMCkgXQ0KXGVuZHthbGlnbmVkfSQkDQoNCk5vdyBsZXQncyBsb29rIGF0IHRoZSBjb3JyZWN0aW9uIHBhcnQ6DQokJEUgXGxlZnRbIFxmcmFje1AoWj0xfFgpfXsxIC0gUChaPTF8WCl9ICgxLVopIChEIC0gRVtEfFgsIFo9MF0pIFxyaWdodF0kJA0KDQpCeSAoQTEpIFJhbmRvbSBBc3NpZ25tZW50IGFuZCAoQTUpIENvbnNpc3RlbmN5Og0KDQokJFxiZWdpbnthbGlnbmVkfQ0KJiBFW0R8WCwgWj0wXSBcXA0KJiBcc3RhY2tyZWx7XHRleHR7KEE1KX19ez19IEVbRCgwKXxYLCBaPTBdIFxcDQomIFxzdGFja3JlbHtcdGV4dHsoQTEpfX17PX0gRVtEKDApfFhdIFxcDQpcZW5ke2FsaWduZWR9JCQNCg0KTGV0J3MgcGx1ZyB0aGlzIGluIHRoZSBjb3JyZWN0aW9uIHBhcnQgYW5kIGFwcGx5IHRoZSBMSUU6DQoNCiQkXGJlZ2lue2FsaWduZWR9DQomIEUgXGxlZnRbIFxmcmFje1AoWj0xfFgpfXsxIC0gUChaPTF8WCl9ICgxLVopIChEIC0gRVtEfFgsIFo9MF0pIFxyaWdodF0gXFwNCiYgPSBFIFxsZWZ0WyBcZnJhY3tQKFo9MXxYKX17MSAtIFAoWj0xfFgpfSAoMS1aKSAoRCAtIEVbRCgwKXxYXSkgXHJpZ2h0XSBcXA0KJiBcc3RhY2tyZWx7XHRleHR7KExJRSl9fXs9fSBFIFxsZWZ0WyBFIFxsZWZ0WyBcZnJhY3tQKFo9MXxYKX17MSAtIFAoWj0xfFgpfSAoMS1aKSAoRCAtIEVbRCgwKXxYXSkgXG1pZCBYIFxyaWdodF0gXHJpZ2h0XSBcXA0KJiA9IEUgXGxlZnRbIFxmcmFje1AoWj0xfFgpfXsxIC0gUChaPTF8WCl9IEUgXGxlZnRbICgxLVopIChEIC0gRVtEKDApfFhdKSBcbWlkIFggXHJpZ2h0XSBccmlnaHRdIFxcDQpcZW5ke2FsaWduZWR9JCQNCg0KRm9jdXMgb24gdGhlIGlubmVyIHBhcnQgYW5kIGFwcGx5IHRoZSBMSUUgYWdhaW46DQoNCiQkXGJlZ2lue2FsaWduZWR9DQomIEUgXGxlZnRbICgxLVopIChEIC0gRVtEKDApfFhdKSBcbWlkIFggXHJpZ2h0XSBcXA0KJiBcc3RhY2tyZWx7XHRleHR7KExJRSl9fXs9fSBcIEVbKDEtMSkoRC1FW0QoMCl8WF0pIFxtaWQgWCwgWj0xXSBcY2RvdCBQKFo9MSBcbWlkIFgpIFxcDQomICsgRVsoMS0wKShELUVbRCgwKXxYXSkgXG1pZCBYLCBaPTBdIFxjZG90IFAoWj0wIFxtaWQgWCkgXFwNCiYgPSAgRVsoRC1FW0QoMCl8WF0pIFxtaWQgWCwgWj0wXSBcY2RvdCBQKFo9MCBcbWlkIFgpIFxcDQomID0gKDEgLSBQKFo9MXxYKSkgXGNkb3QgKEVbRCBcbWlkIFgsIFo9MF0gLSBFW0QoMCl8WF0pIFxcDQomIFxzdGFja3JlbHtcdGV4dHsoQTEmQTUpfX17PX0gKDEgLSBQKFo9MXxYKSkgXGNkb3QgKCBFW0QoMCkgXG1pZCBYXSAtIEVbRCgwKXxYXSkgXFwNCiYgPSAwIFxcDQpcZW5ke2FsaWduZWR9JCQNCg0KTm93IHdlIGxvb2sgYXQgdGhlIGZ1bGwgQUlQVyByZXByZXNlbnRhdGlvbiBvZiB0aGUgZGVub21pbmF0b3IgYWdhaW4sIHdoaWNoIHdlIHdyb3RlIGFzOg0KDQokJEUgXGxlZnRbIFogRCAtIFxsZWZ0KCBcdGV4dHtSZWdyZXNzaW9uIFBhcnR9ICsgXHRleHR7Q29ycmVjdGlvbiBQYXJ0fSBccmlnaHQpIFxyaWdodF0kJA0KV2UgaGF2ZSBzaG93biB0aGF0IHRoZSByZWdyZXNzaW9uIHBhcnQgaXMgZXF1YWwgdG8gJEVbIFogRCgwKSBdJCBhbmQgdGhlIGNvcnJlY3Rpb24gcGFydCBpcyBlcXVhbCB0byAwLg0KDQpBZGRpdGlvbmFsbHkgc2luY2UgJFo9MSQgdW5kZXIgQ29uc2lzdGVuY3kgJEQ9RCgxKSQuIA0KDQpUaGVuIHRoZSBmaXJzdCBwYXJ0IGJlY29tZXM6DQoNCiQkRVtaRF0gPSBFW1ogRCgxKV0kJA0KDQpQdXR0aW5nIGV2ZXJ5dGhpbmcgdG9nZXRoZXIgd2UgYW5kIHJlbWViZXJpbmcgb3VyIGZpcnN0IHJlc3VsdCB3aGVuIHJld3JpdGluZyAkXGZyYWN7RVsgWiAoRCgxKSAtIEQoMCkpIF19e1AoRD0xKX0gPSBFWyBEKDEpIC0gRCgwKSBcbWlkIEQ9MSBdJCB3ZSBnZXQ6DQoNCiQkXGJlZ2lue2FsaWduZWR9DQomIFxmcmFjezF9e1AoRD0xKX0gRSBcbGVmdFsgWiBEIC0gXGxlZnQoIFx0ZXh0e1JlZ3Jlc3Npb24gUGFydH0gKyBcdGV4dHtDb3JyZWN0aW9uIFBhcnR9IFxyaWdodCkgXHJpZ2h0XSBcXA0KJiA9IFxmcmFjezF9e1AoRD0xKX0gRVtaIEQoMSldIC0gRVsgWiBEKDApIF0gXFwNCiYgPSBcZnJhY3tFWyBaIChEKDEpIC0gRCgwKSkgXX17UChEPTEpfSBcXA0KJiA9IEVbIEQoMSkgLSBEKDApIFxtaWQgRD0xIF0gXFwgDQpcZW5ke2FsaWduZWR9JCQNCg0KVGhlcmVmb3JlIHdlIGhhdmUgc2hvd24gdGhhdCB0aGUgZGVub21pbmF0b3IgaXMgaWRlbnRpZmllZCBieSB0aGUgQUlQVyBzdHJ1Y3R1cmUgYWJvdmUuDQoNCldlIGhhdmUgc3VjY2VzZnVsbHkgc2hvd24gdGhhdCBib3RoIHRoZSBudW1lcmF0b3IgYW5kIGRlbm9taW5hdG9yIG9mIHRoZSBMQVRUIGFyZSBpZGVudGlmaWVkIGJ5IHRoZSBBSVBXLUFUVCBzdHJ1Y3R1cmUgdW5kZXIgb3VyIElWIGFzc3VtcHRpb25zIChBMSktKEE1KS4gVGh1cyB0aGUgTEFUVCBpdHNlbGYgaXMgaWRlbnRpZmllZCBhcyB0aGUgcmF0aW8gb2YgdGhlIHR3byBpZGVudGlmaWVkIEFJUFctQVRUIHJhdGlvcy4gDQoNCg0KIyMjIDIuMyBJbmZsdWVuY2UgZnVuY3Rpb24gZGVyaXZhdGlvbg0KDQpXZSBoYXZlIHNob3duIGluIHRoZSBwcmV2aW91cyBzZWN0aW9uIHRoYXQgdGhlIExBVFQgY2FuIGJlIGV4cHJlc3NlZCBhcyBhIHJhdGlvIG9mIHR3byBBVFRzLiBBcyB3ZSBrbm93IHRoZSBOZXltYW4tb3J0aG9nb25hbCBzY29yZSBmb3IgdGhlIEFUVCwgd2UgY2FuIHVzZSB0aGUgY2hhaW4gcnVsZSB0byBkZXJpdmUgYW4gaW5mbHVlbmNlIGZ1bmN0aW9uIGZvciB0aGUgTEFUVC4NCg0KVGhlIE5leW1hbiBvcnRob2dvbmFsIHNjb3JlIG9mIHRoZSBBVFQgaXMgZ2l2ZW4gYnk6DQoNCiQkDQpccHNpX3tBVFR9KE87XHRoZXRhO1xldGEpID0gXHVuZGVyc2V0e1x0ZXh0c3R5bGU9XHRpbGRle1l9X3tBVFR9fXtcdW5kZXJicmFjZXsgXGZyYWN7RH17ZX0oWSAtIG0oMCxYKSkgLSBcZnJhY3soMS1EKWUoWCl9e2UoMS1lKFgpKX0oWSAtIG0oMCxYKSl9fSAgLSBcdGF1X3tBVFR9IFxmcmFje1d9e2V9DQokJA0KDQpXaXRoICRPPShELFgsWSkkLCAkXHRoZXRhID0gXHRhdV97QVRUfSQsICRcZXRhID0gKG0oMCxYKSwgZShYKSwgZSkkIGFuZCB0aGUgdHdvIGxpbmVhciBzY29yZSBjb21wb25lbnRzICRccHNpX2EoTztcZXRhKSA9ICgtMSlcZnJhY3tEfXtlfSQgYW5kICRccHNpX2IoTztcZXRhKSA9IFx0aWxkZXtZfV97QVRUfSQuDQoNCiRtKDAsWCkkIGlzIHRoZSByZWdyZXNzaW9uIGZ1bmN0aW9uIG9mICRZJCBnaXZlbiAkRD0wJCBhbmQgJFgkLCAkZShYKSQgaXMgdGhlIHByb3BlbnNpdHkgc2NvcmUgb2YgJEQkIGdpdmVuICRYJCBhbmQgJGUkIGlzIHRoZSB1bmNvbmRpdGlvbmFsIHByb2JhYmlsaXR5IG9mIHRyZWF0bWVudC4NCg0KTGV0J3MgdGFpbG9yIHRoaXMgc2NvcmUgZnVuY3Rpb24gbm93IHRvIHRoZSB0d28gc3BlY2lmaWMgQVRUcyB3ZSBoYXZlLg0KDQpMZXQncyBzdGFydCB3aXRoIHRoZSBudW1lcmF0b3IsIHdoaWNoIGlzIHRoZSBBVFQgb2YgdGhlIGluc3RydW1lbnQgb24gdGhlIG91dGNvbWUuIFRoZXJlZm9yZSB3ZSBzaW1wbHkgbmVlZCB0byByZXBsYWNlICREJCB3aXRoICRaJCBhbmQgYWxsIG51aXNhbmNlIHBhcmFtZXRlcnMgcmVzcGVjdGl2ZWx5Og0KDQokJA0KXHBzaV97QVRUfV57WX0oTztcdGhldGE7XGV0YSkNCj0gXHVuZGVyc2V0e1x0ZXh0c3R5bGU9XHRpbGRle1l9X3tBVFR9XntafX17XHVuZGVyYnJhY2V7IFxmcmFje1p9e2h9KFkgLSBtX3tafSgwLFgpKSAtIFxmcmFjeygxLVopKGgoWCkpfXtoKDEtaChYKSl9KFkgLSBtX3tafSgwLFgpKX19ICAtIFx0YXVfe0FUVH1ee1l9IFxmcmFje1p9e2h9DQokJA0KDQosIHdoZXJlICRPPShaLFgsWSkkLCAkXHRoZXRhID0gXHRhdV97QVRUfV57WX0kLCAkXGV0YSA9IChtX3tafSgwLFgpLCBoKFgpLCBoKSQgYW5kIHRoZSB0d28gbGluZWFyIHNjb3JlIGNvbXBvbmVudHMgJFxwc2lfYV57WX0oTztcZXRhKSA9ICgtMSlcZnJhY3tafXtofSQgYW5kICRccHNpX2Jee1l9KE87XGV0YSkgPSBcdGlsZGV7WX1fe0FUVH1ee1p9JC4NCg0KVGhlIG51aXNhbmNlIHBhcmFtZXRlcnMgYXJlIG5vdyBkZWZpbmVkIGFzIGZvbGxvd3M6ICRtX3tafSgwLFgpJCBpcyB0aGUgcmVncmVzc2lvbiBmdW5jdGlvbiBvZiAkWSQgZ2l2ZW4gJFo9MCQgYW5kICRYJCwgJGgoWCkkIGlzIHRoZSBwcm9wZW5zaXR5IHNjb3JlIG9mICRaJCBnaXZlbiAkWCQgYW5kICRoJCBpcyB0aGUgdW5jb25kaXRpb25hbCBwcm9iYWJpbGl0eSBvZiAkWiQuDQoNCkxldCdzIHByb2NlZWQgd2l0aCB0aGUgZGVub21pbmF0b3IsIHdoaWNoIGlzIHRoZSBBVFQgb2YgdGhlIGluc3RydW1lbnQgb24gdGhlIHRyZWF0bWVudDoNCg0KV2UgZGVmaW5lICRPPShaLFgsRCkkLCAkXHRoZXRhID0gXHRhdV97QVRUfV57RH0kLCAkXGV0YSA9IChlX3tafSgwLFgpLCBoKFgpLCBoKSQgYW5kIHRoZSB0d28gbGluZWFyIHNjb3JlIGNvbXBvbmVudHMgJFxwc2lfYV57RH0oTztcZXRhKSA9ICgtMSlcZnJhY3tafXtofSQgYW5kICRccHNpX2Jee0R9KE87XGV0YSkgPSBcdGlsZGV7RH1fe0FUVH1ee1p9JC4NCg0KVGhlIGNvbXBsZXRlIHNjb3JlIGZ1bmN0aW9uIGZvciB0aGUgQVRUIG9mIHRoZSBpbnN0cnVtZW50IG9uIHRoZSB0cmVhdG1lbnQgaXMgdGhlbiBnaXZlbiBieToNCg0KJCQNClxwc2lfe0FUVH1ee0R9KE87XHRoZXRhO1xldGEpID0gXHVuZGVyc2V0e1x0ZXh0c3R5bGU9XHRpbGRle0R9X3tBVFR9XntafX17XHVuZGVyYnJhY2V7IFxmcmFje1p9e2h9KEQgLSBlX3tafSgwLFgpKSAtIFxmcmFjeygxLVopKGgoWCkpfXtoKDEtaChYKSl9KEQgLSBlX3tafSgwLFgpKX19ICAtIFx0YXVfe0FUVH1ee0R9IFxmcmFje1p9e2h9DQokJA0KDQpOb3cgdGhhdCB3ZSBoYXZlIGRlZmluZWQgdGhlIHR3byBzY29yZSBmdW5jdGlvbnMgZm9yIHRoZSBudW1lcmF0b3IgYW5kIGRlbm9taW5hdG9yLCB3ZSBjYW4gZGVyaXZlIHRoZSB0d28gaW5mbHVlbmNlIGZ1bmN0aW9ucyAkXFBzaV97QVRUfV57WX0kIGFuZCAkXFBzaV97QVRUfV57RH0kIHVzaW5nIHRoZSBsaW5lYXIgY29tcG9uZW50czoNCg0KJCQNClxiZWdpbnthbGlnbmVkfQ0KJiBcUHNpX3tBVFR9XntZfSA9IC0gXG1hdGhiYntFfVtccHNpX2Fee1l9XV57LTF9IFxjZG90IFxwc2lfe0FUVH1ee1l9IFxcDQomID0gLSBcbGVmdChcbWF0aGJie0V9XGxlZnRbLVxmcmFje1p9e2h9XHJpZ2h0XVxyaWdodCleey0xfSBcY2RvdCBcbGVmdChcdGlsZGV7WX1fe0FUVH1ee1p9IC0gXHRhdV97QVRUfV57WX0gXGZyYWN7Wn17aH1ccmlnaHQpIFxcDQomID0gLSBcbGVmdCgtXGZyYWN7XG1hdGhiYntFfVtaXX17aH1ccmlnaHQpXnstMX0gXGNkb3QgXGxlZnQoXHRpbGRle1l9X3tBVFR9XntafSAtIFx0YXVfe0FUVH1ee1l9IFxmcmFje1p9e2h9XHJpZ2h0KSBcXA0KJiA9IC0gXGxlZnQoLVxmcmFje2h9e2h9XHJpZ2h0KV57LTF9IFxsZWZ0KFx0aWxkZXtZfV97QVRUfV57Wn0gLSBcdGF1X3tBVFR9XntZfSBcZnJhY3tafXtofVxyaWdodCkgXFwNCiYgPSAtIFxsZWZ0KC0xXHJpZ2h0KV57LTF9IFxsZWZ0KFx0aWxkZXtZfV97QVRUfV57Wn0gLSBcdGF1X3tBVFR9XntZfSBcZnJhY3tafXtofVxyaWdodCkgXFwNCiYgPSBcdGlsZGV7WX1fe0FUVH1ee1p9IC0gXHRhdV97QVRUfV57WX0gXGZyYWN7Wn17aH0gXFwNClxlbmR7YWxpZ25lZH0NCiQkDQoNClN1YnNlcXVlbnRseSBmb3IgdGhlIEFUVCBvZiB0aGUgaW5zdHJ1bWVudCBvbiB0aGUgdHJlYXRtZW50IHdlIGhhdmU6DQoNCiQkDQpcYmVnaW57YWxpZ25lZH0NCiYgXFBzaV97QVRUfV57RH0gPSAtIFxtYXRoYmJ7RX1bXHBzaV9hXntEfV1eey0xfSBcY2RvdCBccHNpX3tBVFR9XntEfSBcXA0KJiA9IC0gXGxlZnQoXG1hdGhiYntFfVxsZWZ0Wy1cZnJhY3tafXtofVxyaWdodF1ccmlnaHQpXnstMX0gXGNkb3QgXGxlZnQoXHRpbGRle0R9X3tBVFR9XntafSAtIFx0YXVfe0FUVH1ee0R9IFxmcmFje1p9e2h9XHJpZ2h0KSBcXA0KJiA9IC0gXGxlZnQoLVxmcmFje1xtYXRoYmJ7RX1bWl19e2h9XHJpZ2h0KV57LTF9IFxjZG90IFxsZWZ0KFx0aWxkZXtEfV97QVRUfV57Wn0gLSBcdGF1X3tBVFR9XntEfSBcZnJhY3tafXtofVxyaWdodCkgXFwNCiYgPSAtIFxsZWZ0KC1cZnJhY3tofXtofVxyaWdodCleey0xfSBcbGVmdChcdGlsZGV7RH1fe0FUVH1ee1p9IC0gXHRhdV97QVRUfV57RH0gXGZyYWN7Wn17aH1ccmlnaHQpIFxcDQomID0gLSBcbGVmdCgtMVxyaWdodCleey0xfSBcbGVmdChcdGlsZGV7RH1fe0FUVH1ee1p9IC0gXHRhdV97QVRUfV57RH0gXGZyYWN7Wn17aH1ccmlnaHQpIFxcDQomID0gXHRpbGRle0R9X3tBVFR9XntafSAtIFx0YXVfe0FUVH1ee0R9IFxmcmFje1p9e2h9IFxcDQpcZW5ke2FsaWduZWR9DQokJA0KDQpPdXIgTEFUVCBwYXJhbWV0ZXIgaXMgYSByYXRpbyBvZiB0aGUgdHdvIEFUVHM6DQoNCiQkDQpcdGF1X3tMQVRUfSA9IFxmcmFje1x0YXVfe0FUVH1ee1l9fXtcdGF1X3tBVFR9XntEfX0NCiQkDQoNClVzaW5nIHRoZSBjaGFpbiBydWxlIHdlIGNhbiBkZXJpdmUgdGhlIGluZmx1ZW5jZSBmdW5jdGlvbiBmb3IgdGhlIExBVFQgYXMgZm9sbG93czoNCg0KJCQNClxiZWdpbnthbGlnbmVkfQ0KJiBcUHNpX3tMQVRUfSA9IFxmcmFje1xwYXJ0aWFsIFx0YXVfe0xBVFR9fXtccGFydGlhbCBcdGF1X3tBVFR9XntZfX0gXFBzaV97QVRUfV57WX0gKyBcZnJhY3tccGFydGlhbCBcdGF1X3tMQVRUfX17XHBhcnRpYWwgXHRhdV97QVRUfV57RH19IFxQc2lfe0FUVH1ee0R9IFxcDQomID0gXGZyYWN7XFBzaV97QVRUfV57WX19e1x0YXVfe0FUVH1ee0R9fSAtIFxmcmFje1x0YXVfe0FUVH1ee1l9fXsoXHRhdV97QVRUfV57RH0pXjJ9IFxQc2lfe0FUVH1ee0R9DQpcZW5ke2FsaWduZWR9DQokJA0KDQpOb3cgd2UgcGx1ZyBpbiB0aGUgdHdvIEFUVCBpbmZsdWVuY2UgZnVuY3Rpb25zIHdlIGhhdmUgZGVyaXZlZCBiZWZvcmUgdXNpbmcgb3VyIGxpbmVhciBjb21wb25lbnRzOg0KDQokJA0KXGJlZ2lue2FsaWduZWR9DQomIFxQc2lfe0xBVFR9ID0gXGZyYWN7XHRpbGRle1l9X3tBVFR9XntafSAtIFx0YXVfe0FUVH1ee1l9IFxmcmFje1p9e2h9fXtcdGF1X3tBVFR9XntEfX0gLSBcZnJhY3tcdGF1X3tBVFR9XntZfX17KFx0YXVfe0FUVH1ee0R9KV4yfSBcbGVmdChcdGlsZGV7RH1fe0FUVH1ee1p9IC0gXHRhdV97QVRUfV57RH0gXGZyYWN7Wn17aH1ccmlnaHQpIFxcDQomID0gXGZyYWN7XHRpbGRle1l9X3tBVFR9XntafX17XHRhdV97QVRUfV57RH19IC0gXGZyYWN7XHRhdV97QVRUfV57WX19e1x0YXVfe0FUVH1ee0R9fSBcZnJhY3tafXtofSAtIFxmcmFje1x0YXVfe0FUVH1ee1l9fXsoXHRhdV97QVRUfV57RH0pXjJ9IFx0aWxkZXtEfV97QVRUfV57Wn0gLSBcbGVmdCggXGZyYWN7XHRhdV97QVRUfV57WX19eyhcdGF1X3tBVFR9XntEfSleMn0gXHJpZ2h0KSBcbGVmdCggLSBcdGF1X3tBVFR9XntEfSBcZnJhY3tafXtofSBccmlnaHQpIFxcDQomID0gXGZyYWN7XHRpbGRle1l9X3tBVFR9XntafX17XHRhdV97QVRUfV57RH19IC0gXGZyYWN7XHRhdV97QVRUfV57WX19e1x0YXVfe0FUVH1ee0R9fSBcZnJhY3tafXtofSAtIFxmcmFje1x0YXVfe0FUVH1ee1l9fXsoXHRhdV97QVRUfV57RH0pXjJ9IFx0aWxkZXtEfV97QVRUfV57Wn0gKyBcZnJhY3tcdGF1X3tBVFR9XntZfX17XHRhdV97QVRUfV57RH19IFxmcmFje1p9e2h9IFxcDQomID0gXGZyYWN7XHRpbGRle1l9X3tBVFR9XntafX17XHRhdV97QVRUfV57RH19IC0gXGZyYWN7XHRhdV97QVRUfV57WX19eyhcdGF1X3tBVFR9XntEfSleMn0gXHRpbGRle0R9X3tBVFR9XntafSBcXA0KXGVuZHthbGlnbmVkfQ0KJCQNCg0KV2UgY2FuIHdyaXRlIHRoaXMgaW4gYSBtb3JlIGNvbXBhY3QgZm9ybSBieSBzdWJzdGl0dXRpbmcgYmFjayB0aGUgZGVmaW5pdGlvbiBvZiAkXHRhdV97TEFUVH0kIGFuZCBmYWN0b3Jpbmcgb3V0ICRcZnJhY3sxfXtcdGF1X3tBVFR9XntEfX0kOg0KDQokJA0KXGJlZ2lue2FsaWduZWR9DQomIFxQc2lfe0xBVFR9ID0gXGZyYWN7MX17XHRhdV97QVRUfV57RH19IFxsZWZ0KCBcdGlsZGV7WX1fe0FUVH1ee1p9IC0gXHRhdV97TEFUVH0gXGNkb3QgXHRpbGRle0R9X3tBVFR9XntafSBccmlnaHQpIFxcDQpcZW5ke2FsaWduZWR9DQokJA0KDQpUaGlzIGlzIG91ciBmaW5hbCBpbmZsdWVuY2UgZnVuY3Rpb24gZm9yIHRoZSBMQVRULiBXZSBjYW4gb2JzZXJ2ZSB0aGF0IHRoZSBmaW5hbCB2ZXJzaW9uIHNpbXBsaWZpZXMgdG8gYSBzY2FsZWQgdHlwZSBvZiBwc2V1ZG8gb3V0Y29tZSBvbiBwc2V1ZG8gb3V0Y29tZSByZWdyZXNzaW9uLCB3aGljaCBsb29rcyB2ZXJ5IGZhbWlsaWFyLg0KDQpCZWZvcmUgd2UgY2FuIGFwcGx5IHRoZSBEb3VibGUgTWFjaGluZSBMZWFybmluZyBmcmFtZXdvcmsgd2UgYWRkaXRpb25hbGx5IG5lZWQgdG8gZGVyaXZlIHRoZSBuZXcgZW1waXJpY2FsIG1vbWVudCBjb25kaXRpb24gb2YgJFx0YXVfe0xBVFR9JCBhbmQgc29sdmUgaXQuDQoNCkJlZm9yZSBsb29raW5nIGF0IHRoZSByYXRpbyBvZiB0aGUgdHdvIEFUVCBOZXltYW4tb3J0aG9nb25hbCBzY29yZSBsZXQncyBmaXJzdA0KDQpXZSBoYXZlIHNob3duIHRoYXQgJFx0YXVfe0xBVFR9JCBjYW4gYmUgZXhwcmVzc2VkIGJ5IHRoZSByYXRpbyBvZiB0d28gQVRUcy4NCg0KJCQNClxiZWdpbnthbGlnbmVkfQ0KJiBcdGF1X3tMQVRUfSA9IFxmcmFje1x0YXVfe0FUVH1ee1l9fXtcdGF1X3tBVFR9XntEfX0gXFwNCiYgPSBcZnJhY3tFW1xwc2lfe0FUVH1ee1l9XX17RVtccHNpX3tBVFR9XntEfV19IFxcDQomIFxpbXBsaWVzIEVbXHBzaV97QVRUfV57WX0gLSBcdGF1X3tMQVRUfSBccHNpX3tBVFR9XntEfV0gPSAwIFxcDQpcZW5ke2FsaWduZWR9DQokJA0KDQpOb3cgbGV0J3MgbG9vayBhdCB0aGlzIG1vbWVudCBjb25kaXRpb24gaW4gbW9yZSBkZXRhaWw6DQoNCiQkDQpcYmVnaW57YWxpZ25lZH0NCiYgRVtccHNpX3tBVFR9XntZfSAtIFx0YXVfe0xBVFR9IFxjZG90IFxwc2lfe0FUVH1ee0R9XSA9IDAgXFwNCiYgRVsoXHRpbGRle1l9X3tBVFR9XntafSAtIFx0YXVfe0FUVH1ee1l9IFxmcmFje1p9e2h9KSAtIFx0YXVfe0xBVFR9IFxjZG90IChcdGlsZGV7RH1fe0FUVH1ee1p9IC0gXHRhdV97QVRUfV57RH0gXGZyYWN7Wn17aH0pXSA9IDAgXFwNCiYgRVtcdW5kZXJzZXR7UmVzaWR1YWwgXCBQYXJ0fXtcdW5kZXJicmFjZXsoXHRpbGRle1l9X3tBVFR9XntafSAtIFx0YXVfe0xBVFR9XGNkb3RcdGlsZGV7RH1fe0FUVH1ee1p9KX19ICsgXHVuZGVyc2V0e0NlbnRlcmluZyBcIFBhcnR9e1x1bmRlcmJyYWNleygtIFx0YXVfe0FUVH1ee1l9IFxmcmFje1p9e2h9ICsgXHRhdV97TEFUVH1cY2RvdFx0YXVfe0FUVH1ee0R9IFxmcmFje1p9e2h9KX19XSA9IDAgXFwNClxlbmR7YWxpZ25lZH0NCiQkDQoNCkxldCdzIHpvb20gaW4gb24gdGhlIGNlbnRlcmluZyBwYXJ0LCBwbHVnIGluIHRoZSBkZWZpbml0aW9uIG9mICRcdGF1X3tMQVRUfSQgYW5kIHNob3cgdGhhdCBpdHMgZXhwZWN0YXRpb24gaXMgZXF1YWwgdG8gemVybzoNCg0KJCQNClxiZWdpbnthbGlnbmVkfQ0KJiBFWy0gXHRhdV97QVRUfV57WX0gXGZyYWN7Wn17aH0gKyBcdGF1X3tMQVRUfVxjZG90XHRhdV97QVRUfV57RH0gXGZyYWN7Wn17aH1dIFxcDQomID0gRVstIFx0YXVfe0FUVH1ee1l9IFxmcmFje1p9e2h9ICsgXGZyYWN7XHRhdV97QVRUfV57WX19e1x0YXVfe0FUVH1ee0R9fSBcY2RvdFx0YXVfe0FUVH1ee0R9IFxmcmFje1p9e2h9XSBcXA0KJiA9IEVbLSBcdGF1X3tBVFR9XntZfSBcZnJhY3tafXtofSArIFx0YXVfe0FUVH1ee1l9IFxmcmFje1p9e2h9XSBcXA0KJiA9IDAgXFwNClxlbmR7YWxpZ25lZH0NCiQkDQoNClRoZXJlZm9yZSB0aGUgbW9tZW50IGNvbmRpdGlvbiBzaW1wbGlmaWVzIHRvOg0KDQokJA0KRVtcdGlsZGV7WX1fe0FUVH1ee1p9IC0gXHRhdV97TEFUVH1cY2RvdFx0aWxkZXtEfV97QVRUfV57Wn1dID0gMA0KJCQNCg0KV2l0aCB0aGUgdHdvIGxpbmVhciBzY29yZSBjb21wb25lbnRzICRccHNpX2EoTzsgXGV0YSkgPSAoLTEpIFx0aWxkZXtEfV97QVRUfV57Wn0kIGFuZCAkXHBzaV9iKE87IFxldGEpID0gXHRpbGRle1l9X3tBVFR9XntafSQuDQoNCk5vdyB0aGF0IHdlIGhhdmUgZGVyaXZlZCB0aGUgaW5mbHVlbmNlIGZ1bmN0aW9uIGFuZCB0aGUgZW1waXJpY2FsIE5leW1hbi1vcnRob2dvbmFsIG1vbWVudCBjb25kaXRpb24gZm9yIG91ciBuZXcgcGFyYW1ldGVyICRcdGF1X3tMQVRUfSQsIHdlIGNhbiB1c2UgZm9sbG93aW5nIHByb2NlZHVyZSB0byBlc3RpbWF0ZSAkXGhhdFx0YXVfe0xBVFR9JCB1c2luZyB0aGUgRG91YmxlIE1hY2hpbmUgTGVhcm5pbmcgZnJhbWV3b3JrOg0KDQoxLiAgRXN0aW1hdGUgdGhlIG51aXNhbmNlIHBhcmFtZXRlcnMgJG1fe1p9KDAsWCkkLCAkZV97Wn0oMCxYKSQsICRoKFgpJCBhbmQgJGgkIHdpdGggY3Jvc3MtZml0dGVkIGhpZ2ggcXVhbGl0eSBtYWNoaW5lIGxlYXJuaW5nIG1ldGhvZHMuDQoNCjIuICBFc3RpbWF0ZSB0aGUgdGFyZ2V0IHBhcmFtZXRlciAkXHRhdV97TEFUVH0kIGJ5IHNvbHZpbmcgdGhlIGVtcGlyaWNhbCBtb21lbnQgY29uZGl0aW9uOg0KDQokJA0KXGhhdFx0YXVfe0xBVFR9ID0gLSBcZnJhY3tcc3VtX3tpfSBccHNpX2IoT19pOyBcaGF0e1xldGF9X2kpfXtcc3VtX3tpfSBccHNpX2EoT19pOyBcaGF0e1xldGF9X2kpfQ0KJCQNCg0KUGx1Z2dpbmcgb3VyIGRlcml2ZWQgbGluZWFyIHNjb3JlcyBpbjoNCg0KJCQNClxoYXRcdGF1X3tMQVRUfSA9IC0gXGZyYWN7XHN1bV97aX0gXHRpbGRle1l9X3tBVFQsaX1ee1p9fXtcc3VtX3tpfSAoLTEpIFx0aWxkZXtEfV97QVRULGl9XntafX0gPSBcZnJhY3tcc3VtX3tpfSBcdGlsZGV7WX1fe0FUVCxpfV57Wn19e1xzdW1fe2l9IFx0aWxkZXtEfV97QVRULGl9XntafX0NCiQkDQoNCjMuICBFc3RpbWF0ZSBzdGFuZGFyZCBlcnJvcnMgdXNpbmcgdGhlIGRlcml2ZWQgaW5mbHVlbmNlIGZ1bmN0aW9uOg0KDQokJA0KXGJlZ2lue2FsaWduZWR9DQomIFxoYXR7XHNpZ21hfV97TEFUVH0gPSBcb3BlcmF0b3JuYW1le1Zhcn0oXFBzaV97TEFUVH0pIFxcDQomIFxpbXBsaWVzIFx3aWRlaGF0e1xvcGVyYXRvcm5hbWV7c2V9fShcaGF0e1x0YXV9X3tMQVRUfSkgPSBcc3FydHtcZnJhY3tcaGF0e1xzaWdtYX1fe0xBVFR9fXtufX0NClxlbmR7YWxpZ25lZH0NCiQkDQo=</div>
 
 
 </div>

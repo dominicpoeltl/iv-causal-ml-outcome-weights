@@ -19,25 +19,27 @@ output:
 
 To identify the LATT we use the following standard IV assumptions:
 
-(A1) Random Assignment of Z: $Z \perp (Y(1), Y(0), D(1), D(0))$
+(A1) Random Assignment of Z: $Z \perp (Y(1), Y(0), D(1), D(0)) \mid X$
 
-(A2) Exclusion Restriction: $Y(d, z) = Y(d)$ for all $d, z$
+(A2) Exclusion Restriction: $Y(z,D(z)) = Y(D(z))$ for all $z$
 
 This also implies:
 
-\$\$
+$$
 
 Y(D(1)) = Y(1)D(1) + Y(0)(1-D(1)) \\
 
 Y(D(0)) = Y(1)D(0) + Y(0)(1-D(0))
 
-\$\$
+$$
 
 (A3) Relevance: $E[D(1)] \neq E[D(0)]$
 
 Additionally we impose the assumption of monotonicity and rule out defiers:
 
 (A4) Monotonicity: $P(D(1) \geq D(0)) = 1$
+
+(A5) Consistency: $D = D(Z)$ and $Y = Y(z,D(z)) \stackrel{\text{(A2)}}{=} Y(D(z))$
 
 First we need to show, that $\tau_{LATT}$ that is defined as $\tau_{LATT} = E[Y(1)-Y(0) \mid D(0)=0, D(1)=1, D=1]$ can be written as the ratio of the ATT of the instrument on the outcome and the ATT of the instrument on the treatment:
 
@@ -120,80 +122,373 @@ Plugging this back into our previous equation we get:
 $$
 E[ Y(1)-Y(0) \mid D(0)=0, D(1)=1, D=1] = \frac{E[ Y(1,D(1)) - Y(0,D(0)) \mid D=1]}{E[D(1) - D(0) \mid D=1]} \quad \blacksquare
 $$
-
 Which we wanted to show.
 
-Now we will proceed with the identification of the LATT under the stated assumptions. We start with the numerator:
+We will now use this result to show identification of $\tau_{LATT}$ under our IV assumptions (A1)-(A5).
+
+Starting with the numerator:
+
+We will proced tho show that the numerator is identifed by follwing AIPW structure, which we can split in regression and correction part:
+
+$$\frac{1}{P(D=1)} E \left[ Z Y - \left( \underset{\text{Regression Part}}{\underbrace{P(Z=1|X) E[Y|X, Z=0]}} + \underset{\text{Correction Part}}{\underbrace{\frac{P(Z=1|X)(1-Z)(Y - E[Y|X, Z=0])}{1 - P(Z=1|X)}}} \right) \right]$$
+
+
+We start by basic rewriting.
+
+We have already shown that we can use the exclusion restriction (A2) to rewrite the numerator as:
+
+$$
+E[ Y(1,D(1)) - Y(0,D(0)) \mid D=1] = E[ Y(D(1)) - Y(D(0)) \mid D=1]
+$$
+
+By the definition of conditional expectation we can write this as:
+
+$$
+E[ Y(D(1)) - Y(D(0)) \mid D=1 ] = \frac{E[ (Y(D(1)) - Y(D(0))) \cdot D ]}{P(D=1)}
+$$
+
+We can again identify 4 types:
+
+1. Always Takers: $D(1)=1, D(0)=1 \implies Y(D(1)) - Y(D(0)) = 0$
+2. Never Takers: $D(1)=0, D(0)=0 \implies Y(D(1)) - Y(D(0)) = 0$
+3. Compliers: $D(1)=1, D(0)=0 \implies Y(D(1)) - Y(D(0)) = Y(1) - Y(0)$
+4. Defiers: Ruled out by Montonicity (A4)
+
+So the term $E[ (Y(D(1)) - Y(D(0))) \cdot D ]$ is non-zero only for compliers. We also already know from above that for complies $D=Z$. Therefore we can  replace $D$ in the numerator expectation:
+
+$$E[ (Y(D(1)) - Y(D(0))) \cdot D ] = E[ (Y(D(1)) - Y(D(0))) \cdot Z ]$$
+
+Now let's focus on the regression part:
+
+$$E[ P(Z=1|X) E[Y|X, Z=0] ]$$
+
+Using Consistency and (A1 - $Z \perp Y(D(0)) \mid X$) we can write:
 
 $$
 \begin{aligned}
-& E[ Y(1,D(1)) - Y(0,D(0)) \mid D=1] \\
-& \stackrel{\text{(A2)}}{=} E[ Y(D(1)) - Y(D(0)) \mid D=1] \\
-& \stackrel{\text{(LIE)}}{=} E[\underset{\textstyle=0}{\underbrace{Y(1) - Y(1)}} \mid D(1) = 1, D(0)=1, D=1] \cdot P(D(1) = 1, D(0)=1 \mid D=1) \\
-& + E[Y(1) - Y(0) \mid D(1) = 1, D(0)=0, D=1] \cdot P(D(1) = 1, D(0)=0 \mid D=1) \\
-& + E[Y(0) - Y(1) \mid D(1) = 0, D(0)=1, D=1] \cdot \underset{\textstyle=0}{\underbrace{P(D(1) = 0, D(0)=1 \mid D=1)}} \\
-& + E[\underset{\textstyle=0}{\underbrace{Y(0) - Y(0)}} \mid D(1) = 0, D(0)=0, D=1] \cdot \underset{\textstyle=0}{\underbrace{P(D(1) = 0, D(0)=0 \mid D=1)}} \\
-& = E[Y(1) - Y(0) \mid D(1) = 1, D(0)=0, D=1] \cdot P(D(1) = 1, D(0)=0 \mid D=1) \\
+& E[ P(Z=1|X) E[Y|X, Z=0] ] \\
+& \stackrel{\text{(A5)}}{=} E[ P(Z=1|X) E[Y(D(0))|X,Z=0] \\
+& \stackrel{\text{(A1)}}{=} E[ P(Z=1|X) E[YD(0)|X] ] \\
+& = E[ E[Z|X] E[Y(D(0))|X] ] \\
+& = E[ E[Z  Y(D(0))|X] ] \\
+& = E[ Z Y(D(0)) ]
 \end{aligned}
-$$ We can see that only the effect on compliers remains in the expression above.
-
-If the instrument is randomly assigned and we look only at the compliers, if D=1 this is equivalent to Z=1, and if D=0 this is equivalent to Z=0. Thus we can rewrite the above expression as:
-
-$$
-E[Y(1) - Y(0) \mid D(1) = 1, D(0)=0, D=1] \cdot P(D(1) = 1, D(0)=0 \mid D=1) = E[Y(1) - Y(0) \mid D(1) = 1, D(0)=0, Z=1] \cdot P(D(1) = 1, D(0)=0 \mid D=1)
 $$
 
-Additionally if (A1) hold (Z is randomly assigned and specially independent of potential outcomes and potential treatments), we can drop the conditioning on Z=1:
+Now let's look at the correction part:
 
-$$
-E[Y(1) - Y(0) \mid D(1) = 1, D(0)=0, Z=1] = E[Y(1) - Y(0) \mid D(1) = 1, D(0)=0] = \tau_{LATE}
-$$
+$$E \left[ \frac{P(Z=1|X)}{1 - P(Z=1|X)} (1-Z) (Y - E[Y|X, Z=0]) \right]$$
 
-This is equal to the LATE effect. So, We identified the numerator as a scaled version of the LATE:
-
-$$E[ Y(1,D(1)) - Y(0,D(0)) \mid D=1] = \tau_{LATE} \cdot P(D(1) = 1, D(0)=0 \mid D=1)$$
-
-Now we proceed with the denominator:
-
-We again decompose this using the law of iterated expectations:
+By (A1) Random Assignment and (A2) Exclusion and (A5) Consistency: 
 
 $$
 \begin{aligned}
-& E[D(1) - D(0) \mid D=1] \\
-& \stackrel{\text{(LIE)}}{=} E[\underset{\textstyle=0}{\underbrace{1 - 1}} \mid D(1) = 1, D(0)=1, D=1] \cdot P(D(1) = 1, D(0)=1 \mid D=1) \\
-& + E[1 - 0 \mid D(1) = 1, D(0)=0, D=1] \cdot P(D(1) = 1, D(0)=0 \mid D=1) \\
-& + E[0 - 1 \mid D(1) = 0, D(0)=1, D=1] \cdot \underset{\textstyle=0}{\underbrace{P(D(1) = 0, D(0)=1 \mid D=1)}} \\
-& + E[\underset{\textstyle=0}{\underbrace{0 - 0}} \mid D(1) = 0, D(0)=0, D=1] \cdot \underset{\textstyle=0}{\underbrace{P(D(1) = 0, D(0)=0 \mid D=1)}} \\
-& = 1 \cdot P(D(1) = 1, D(0)=0 \mid D=1) \\
+& E[Y|X, Z=0] \\
+& \stackrel{\text{(A5&A2)}}{=} E[Y(D(0))|X, Z=0] \\
+& \stackrel{\text{(A1)}}{=} E[Y(D(0))|X] \\
 \end{aligned}
 $$
 
-Now we plug the numerator and denominator back into our expression for $\tau_{LATT}$:
+Let's plug this in the correction part and apply the LIE:
 
 $$
-\tau_{LATT} = \frac{\tau_{LATE} \cdot P(D(1) = 1, D(0)=0 \mid D=1)}{P(D(1) = 1, D(0)=0 \mid D=1)} = \tau_{LATE}
+\begin{aligned}
+& E \left[ \frac{P(Z=1|X)}{1 - P(Z=1|X)} (1-Z) (Y - E[Y|X, Z=0]) \right] \\
+& = E \left[ \frac{P(Z=1|X)}{1 - P(Z=1|X)} (1-Z) (Y - E[Y(D(0))|X]) \right] \\
+& \stackrel{\text{(LIE)}}{=} E \left[ E \left[ \frac{P(Z=1|X)}{1 - P(Z=1|X)} (1-Z) (Y - E[Y(D(0))|X]) \mid X \right] \right] \\
+& = E \left[ \frac{P(Z=1|X)}{1 - P(Z=1|X)} E \left[ (1-Z) (Y - E[Y(D(0))|X]) \mid X \right] \right] \\
+\end{aligned}
 $$
-
-We have shown that under random assignment of Z that the LATT is equal to the LATE.
-
-From the lecture we know the LATE is identified as:
+Focus on the inner part and apply the LIE again:
 
 $$
-\tau_{LATE} = \frac{E[Y \mid Z=1] - E[Y \mid Z=0]}{E[D \mid Z=1] - E[D \mid Z=0]} = \tau_{LATT} \quad \blacksquare
+\begin{aligned}
+& E \left[ (1-Z) (Y - E[Y(D(0))|X]) \mid X \right] \\
+& \stackrel{\text{(LIE)}}{=} \ E[(1-1)(Y-E[Y(D(0))|X]) \mid X, Z=1] \cdot P(Z=1 \mid X) \\
+& + E[(1-0)(Y-E[Y(D(0))|X]) \mid X, Z=0] \cdot P(Z=0 \mid X) \\
+& =  E[(Y-E[Y(D(0))|X]) \mid X, Z=0] \cdot P(Z=0 \mid X) \\
+& = (1 - P(Z=1|X)) \cdot (E[Y \mid X, Z=0] - E[Y(D(0))|X]) \\
+& \stackrel{\text{(A1&A5&A2)}}{=} (1 - P(Z=1|X)) \cdot ( E[Y(D(0)) \mid X] - E[Y(D(0))|X]) \\
+& = 0 \\
+\end{aligned}
 $$
+Now we look at the full AIPW representation of the numerator again, which we wrote as:
 
-Therefore we have show identification of the LATT.
+$$E \left[ Z Y - \left( \text{Regression Part} + \text{Correction Part} \right) \right]$$
+
+We have shown that the regression part is equal to $E[ Z Y(D(0)) ]$ and the correction part is equal to 0. Additionally since $Z=1$ under Consistency $D=D(1)$ and  $Y = Y(D(1))$. Then the first part becomes:
+
+$$E[ZY] = E[Z Y(D(1))]$$
+
+Putting everything together we and remebering our first result when rewriting $ \frac{E[ Z (Y(D(1)) - Y(D(0))) ]}{P(D=1)} = E[ Y(D(1)) - Y(D(0)) \mid D=1 ] $ we get:
+
+$$
+\begin{aligned}
+& \frac{1}{P(D=1)} E \left[ Z Y - \left( \text{Regression Part} + \text{Correction Part} \right) \right] \\
+& = \frac{1}{P(D=1)} E[Z Y(D(1))] - E[ Z Y(D(0)) ] \\
+& = \frac{E[ Z (Y(D(1)) - Y(D(0))) ]}{P(D=1)} \\
+& = E[ Y(D(1)) - Y(D(0)) \mid D=1 ] \\ 
+\end{aligned}
+$$
+Therefore we have shown that the numerator is identified by the AIPW structure above.
+
+Let's do the same for the denominator:
+
+We will proceed tho show that the denominator is identified by the same AIPW structure:
+
+$$\frac{1}{P(D=1)} E \left[ Z D - \left( \underset{\text{Regression Part}}{\underbrace{P(Z=1|X) E[D|X, Z=0]}} + \underset{\text{Correction Part}}{\underbrace{\frac{P(Z=1|X)(1-Z)(D - E[D|X, Z=0])}{1 - P(Z=1|X)}}} \right) \right]$$
+
+Let's rewrite again:
+
+$$E[ D(1) - D(0) \mid D=1]$$
+
+By the definition of conditional expectation we can write this as:
+$$E[ D(1) - D(0) \mid D=1 ] = \frac{E[ (D(1) - D(0)) \cdot D ]}{P(D=1)}$$
+We can again identify 4 types:
+
+1. Always Takers: $D(1)=1, D(0)=1 \implies D(1) - D(0) = 0$
+2. Never Takers: $D(1)=0, D(0)=0 \implies D(1) - D(0) = 0$
+3.Compliers: $D(1)=1, D(0)=0 \implies D(1) - D(0) = 1$
+4.Defiers: Ruled out by Montonicity (A4)
+
+So the term $E[ (D(1) - D(0)) \cdot D ]$ is non-zero only for compliers. We also already know from above that for complies $D=Z$. Therefore we can  replace $D$ (the multiplier) in the denominator expectation:
+
+$$E[ (D(1) - D(0)) \cdot D ] = E[ (D(1) - D(0)) \cdot Z ]$$
+Now let's focus on the regression part:
+
+$$E[ P(Z=1|X) E[D|X, Z=0] ]$$
+
+Using Consistency and (A1 - $Z \perp D(0) \mid X$) we can write:
+
+$$\begin{aligned}
+& E[ P(Z=1|X) E[D|X, Z=0] ] \\
+& \stackrel{\text{(A5)}}{=} E[ P(Z=1|X) E[D(0)|X,Z=0] \\
+& \stackrel{\text{(A1)}}{=} E[ P(Z=1|X) E[D(0)|X] ] \\
+& = E[ E[Z|X] E[D(0)|X] ] \\
+& = E[ E[Z  D(0)|X] ] \\
+& = E[ Z D(0) ]
+\end{aligned}$$
+
+Now let's look at the correction part:
+$$E \left[ \frac{P(Z=1|X)}{1 - P(Z=1|X)} (1-Z) (D - E[D|X, Z=0]) \right]$$
+
+By (A1) Random Assignment and (A5) Consistency:
+
+$$\begin{aligned}
+& E[D|X, Z=0] \\
+& \stackrel{\text{(A5)}}{=} E[D(0)|X, Z=0] \\
+& \stackrel{\text{(A1)}}{=} E[D(0)|X] \\
+\end{aligned}$$
+
+Let's plug this in the correction part and apply the LIE:
+
+$$\begin{aligned}
+& E \left[ \frac{P(Z=1|X)}{1 - P(Z=1|X)} (1-Z) (D - E[D|X, Z=0]) \right] \\
+& = E \left[ \frac{P(Z=1|X)}{1 - P(Z=1|X)} (1-Z) (D - E[D(0)|X]) \right] \\
+& \stackrel{\text{(LIE)}}{=} E \left[ E \left[ \frac{P(Z=1|X)}{1 - P(Z=1|X)} (1-Z) (D - E[D(0)|X]) \mid X \right] \right] \\
+& = E \left[ \frac{P(Z=1|X)}{1 - P(Z=1|X)} E \left[ (1-Z) (D - E[D(0)|X]) \mid X \right] \right] \\
+\end{aligned}$$
+
+Focus on the inner part and apply the LIE again:
+
+$$\begin{aligned}
+& E \left[ (1-Z) (D - E[D(0)|X]) \mid X \right] \\
+& \stackrel{\text{(LIE)}}{=} \ E[(1-1)(D-E[D(0)|X]) \mid X, Z=1] \cdot P(Z=1 \mid X) \\
+& + E[(1-0)(D-E[D(0)|X]) \mid X, Z=0] \cdot P(Z=0 \mid X) \\
+& =  E[(D-E[D(0)|X]) \mid X, Z=0] \cdot P(Z=0 \mid X) \\
+& = (1 - P(Z=1|X)) \cdot (E[D \mid X, Z=0] - E[D(0)|X]) \\
+& \stackrel{\text{(A1&A5)}}{=} (1 - P(Z=1|X)) \cdot ( E[D(0) \mid X] - E[D(0)|X]) \\
+& = 0 \\
+\end{aligned}$$
+
+Now we look at the full AIPW representation of the denominator again, which we wrote as:
+
+$$E \left[ Z D - \left( \text{Regression Part} + \text{Correction Part} \right) \right]$$
+We have shown that the regression part is equal to $E[ Z D(0) ]$ and the correction part is equal to 0.
+
+Additionally since $Z=1$ under Consistency $D=D(1)$. 
+
+Then the first part becomes:
+
+$$E[ZD] = E[Z D(1)]$$
+
+Putting everything together we and remebering our first result when rewriting $\frac{E[ Z (D(1) - D(0)) ]}{P(D=1)} = E[ D(1) - D(0) \mid D=1 ]$ we get:
+
+$$\begin{aligned}
+& \frac{1}{P(D=1)} E \left[ Z D - \left( \text{Regression Part} + \text{Correction Part} \right) \right] \\
+& = \frac{1}{P(D=1)} E[Z D(1)] - E[ Z D(0) ] \\
+& = \frac{E[ Z (D(1) - D(0)) ]}{P(D=1)} \\
+& = E[ D(1) - D(0) \mid D=1 ] \\ 
+\end{aligned}$$
+
+Therefore we have shown that the denominator is identified by the AIPW structure above.
+
+We have succesfully shown that both the numerator and denominator of the LATT are identified by the AIPW-ATT structure under our IV assumptions (A1)-(A5). Thus the LATT itself is identified as the ratio of the two identified AIPW-ATT ratios. 
+
 
 ### 2.3 Influence function derivation
 
-We have shown in the previous section that the LATT can be expressed as a ratio of two ATTs. As we know the Neyman orthogonal score for the ATT, we can use the chain rule to derive an influence function for the LATT.
+We have shown in the previous section that the LATT can be expressed as a ratio of two ATTs. As we know the Neyman-orthogonal score for the ATT, we can use the chain rule to derive an influence function for the LATT.
 
 The Neyman orthogonal score of the ATT is given by:
 
 $$
-\phi_{ATT}(W; \eta) = \underset{\textstyle=\tilde{Y}_{ATT}}{\underbrace{ \frac{W}{e}(Y - m(0,X)) - \frac{1-D}{e(1-e(X))}(Y - m(0,X))}}  - \tau_{ATT} \frac{W}{e}
+\psi_{ATT}(O;\theta;\eta) = \underset{\textstyle=\tilde{Y}_{ATT}}{\underbrace{ \frac{D}{e}(Y - m(0,X)) - \frac{(1-D)e(X)}{e(1-e(X))}(Y - m(0,X))}}  - \tau_{ATT} \frac{W}{e}
 $$
 
-With $O=(D,X,Y)$, $\theta = \tau_{ATT}$, $\eta = (m(0,X), e(X), e)^1$ and the two linear score components $\phi_a = \tilde{Y}_{ATT}$ and $\phi_b = (-1)\frac{W}{e}$.
+With $O=(D,X,Y)$, $\theta = \tau_{ATT}$, $\eta = (m(0,X), e(X), e)$ and the two linear score components $\psi_a(O;\eta) = (-1)\frac{D}{e}$ and $\psi_b(O;\eta) = \tilde{Y}_{ATT}$.
+
+$m(0,X)$ is the regression function of $Y$ given $D=0$ and $X$, $e(X)$ is the propensity score of $D$ given $X$ and $e$ is the unconditional probability of treatment.
 
 Let's tailor this score function now to the two specific ATTs we have.
+
+Let's start with the numerator, which is the ATT of the instrument on the outcome. Therefore we simply need to replace $D$ with $Z$ and all nuisance parameters respectively:
+
+$$
+\psi_{ATT}^{Y}(O;\theta;\eta)
+= \underset{\textstyle=\tilde{Y}_{ATT}^{Z}}{\underbrace{ \frac{Z}{h}(Y - m_{Z}(0,X)) - \frac{(1-Z)(h(X))}{h(1-h(X))}(Y - m_{Z}(0,X))}}  - \tau_{ATT}^{Y} \frac{Z}{h}
+$$
+
+, where $O=(Z,X,Y)$, $\theta = \tau_{ATT}^{Y}$, $\eta = (m_{Z}(0,X), h(X), h)$ and the two linear score components $\psi_a^{Y}(O;\eta) = (-1)\frac{Z}{h}$ and $\psi_b^{Y}(O;\eta) = \tilde{Y}_{ATT}^{Z}$.
+
+The nuisance parameters are now defined as follows: $m_{Z}(0,X)$ is the regression function of $Y$ given $Z=0$ and $X$, $h(X)$ is the propensity score of $Z$ given $X$ and $h$ is the unconditional probability of $Z$.
+
+Let's proceed with the denominator, which is the ATT of the instrument on the treatment:
+
+We define $O=(Z,X,D)$, $\theta = \tau_{ATT}^{D}$, $\eta = (e_{Z}(0,X), h(X), h)$ and the two linear score components $\psi_a^{D}(O;\eta) = (-1)\frac{Z}{h}$ and $\psi_b^{D}(O;\eta) = \tilde{D}_{ATT}^{Z}$.
+
+The complete score function for the ATT of the instrument on the treatment is then given by:
+
+$$
+\psi_{ATT}^{D}(O;\theta;\eta) = \underset{\textstyle=\tilde{D}_{ATT}^{Z}}{\underbrace{ \frac{Z}{h}(D - e_{Z}(0,X)) - \frac{(1-Z)(h(X))}{h(1-h(X))}(D - e_{Z}(0,X))}}  - \tau_{ATT}^{D} \frac{Z}{h}
+$$
+
+Now that we have defined the two score functions for the numerator and denominator, we can derive the two influence functions $\Psi_{ATT}^{Y}$ and $\Psi_{ATT}^{D}$ using the linear components:
+
+$$
+\begin{aligned}
+& \Psi_{ATT}^{Y} = - \mathbb{E}[\psi_a^{Y}]^{-1} \cdot \psi_{ATT}^{Y} \\
+& = - \left(\mathbb{E}\left[-\frac{Z}{h}\right]\right)^{-1} \cdot \left(\tilde{Y}_{ATT}^{Z} - \tau_{ATT}^{Y} \frac{Z}{h}\right) \\
+& = - \left(-\frac{\mathbb{E}[Z]}{h}\right)^{-1} \cdot \left(\tilde{Y}_{ATT}^{Z} - \tau_{ATT}^{Y} \frac{Z}{h}\right) \\
+& = - \left(-\frac{h}{h}\right)^{-1} \left(\tilde{Y}_{ATT}^{Z} - \tau_{ATT}^{Y} \frac{Z}{h}\right) \\
+& = - \left(-1\right)^{-1} \left(\tilde{Y}_{ATT}^{Z} - \tau_{ATT}^{Y} \frac{Z}{h}\right) \\
+& = \tilde{Y}_{ATT}^{Z} - \tau_{ATT}^{Y} \frac{Z}{h} \\
+\end{aligned}
+$$
+
+Subsequently for the ATT of the instrument on the treatment we have:
+
+$$
+\begin{aligned}
+& \Psi_{ATT}^{D} = - \mathbb{E}[\psi_a^{D}]^{-1} \cdot \psi_{ATT}^{D} \\
+& = - \left(\mathbb{E}\left[-\frac{Z}{h}\right]\right)^{-1} \cdot \left(\tilde{D}_{ATT}^{Z} - \tau_{ATT}^{D} \frac{Z}{h}\right) \\
+& = - \left(-\frac{\mathbb{E}[Z]}{h}\right)^{-1} \cdot \left(\tilde{D}_{ATT}^{Z} - \tau_{ATT}^{D} \frac{Z}{h}\right) \\
+& = - \left(-\frac{h}{h}\right)^{-1} \left(\tilde{D}_{ATT}^{Z} - \tau_{ATT}^{D} \frac{Z}{h}\right) \\
+& = - \left(-1\right)^{-1} \left(\tilde{D}_{ATT}^{Z} - \tau_{ATT}^{D} \frac{Z}{h}\right) \\
+& = \tilde{D}_{ATT}^{Z} - \tau_{ATT}^{D} \frac{Z}{h} \\
+\end{aligned}
+$$
+
+Our LATT parameter is a ratio of the two ATTs:
+
+$$
+\tau_{LATT} = \frac{\tau_{ATT}^{Y}}{\tau_{ATT}^{D}}
+$$
+
+Using the chain rule we can derive the influence function for the LATT as follows:
+
+$$
+\begin{aligned}
+& \Psi_{LATT} = \frac{\partial \tau_{LATT}}{\partial \tau_{ATT}^{Y}} \Psi_{ATT}^{Y} + \frac{\partial \tau_{LATT}}{\partial \tau_{ATT}^{D}} \Psi_{ATT}^{D} \\
+& = \frac{\Psi_{ATT}^{Y}}{\tau_{ATT}^{D}} - \frac{\tau_{ATT}^{Y}}{(\tau_{ATT}^{D})^2} \Psi_{ATT}^{D}
+\end{aligned}
+$$
+
+Now we plug in the two ATT influence functions we have derived before using our linear components:
+
+$$
+\begin{aligned}
+& \Psi_{LATT} = \frac{\tilde{Y}_{ATT}^{Z} - \tau_{ATT}^{Y} \frac{Z}{h}}{\tau_{ATT}^{D}} - \frac{\tau_{ATT}^{Y}}{(\tau_{ATT}^{D})^2} \left(\tilde{D}_{ATT}^{Z} - \tau_{ATT}^{D} \frac{Z}{h}\right) \\
+& = \frac{\tilde{Y}_{ATT}^{Z}}{\tau_{ATT}^{D}} - \frac{\tau_{ATT}^{Y}}{\tau_{ATT}^{D}} \frac{Z}{h} - \frac{\tau_{ATT}^{Y}}{(\tau_{ATT}^{D})^2} \tilde{D}_{ATT}^{Z} - \left( \frac{\tau_{ATT}^{Y}}{(\tau_{ATT}^{D})^2} \right) \left( - \tau_{ATT}^{D} \frac{Z}{h} \right) \\
+& = \frac{\tilde{Y}_{ATT}^{Z}}{\tau_{ATT}^{D}} - \frac{\tau_{ATT}^{Y}}{\tau_{ATT}^{D}} \frac{Z}{h} - \frac{\tau_{ATT}^{Y}}{(\tau_{ATT}^{D})^2} \tilde{D}_{ATT}^{Z} + \frac{\tau_{ATT}^{Y}}{\tau_{ATT}^{D}} \frac{Z}{h} \\
+& = \frac{\tilde{Y}_{ATT}^{Z}}{\tau_{ATT}^{D}} - \frac{\tau_{ATT}^{Y}}{(\tau_{ATT}^{D})^2} \tilde{D}_{ATT}^{Z} \\
+\end{aligned}
+$$
+
+We can write this in a more compact form by substituting back the definition of $\tau_{LATT}$ and factoring out $\frac{1}{\tau_{ATT}^{D}}$:
+
+$$
+\begin{aligned}
+& \Psi_{LATT} = \frac{1}{\tau_{ATT}^{D}} \left( \tilde{Y}_{ATT}^{Z} - \tau_{LATT} \cdot \tilde{D}_{ATT}^{Z} \right) \\
+\end{aligned}
+$$
+
+This is our final influence function for the LATT. We can observe that the final version simplifies to a scaled type of pseudo outcome on pseudo outcome regression, which looks very familiar.
+
+Before we can apply the Double Machine Learning framework we additionally need to derive the new empirical moment condition of $\tau_{LATT}$ and solve it.
+
+Before looking at the ratio of the two ATT Neyman-orthogonal score let's first
+
+We have shown that $\tau_{LATT}$ can be expressed by the ratio of two ATTs.
+
+$$
+\begin{aligned}
+& \tau_{LATT} = \frac{\tau_{ATT}^{Y}}{\tau_{ATT}^{D}} \\
+& = \frac{E[\psi_{ATT}^{Y}]}{E[\psi_{ATT}^{D}]} \\
+& \implies E[\psi_{ATT}^{Y} - \tau_{LATT} \psi_{ATT}^{D}] = 0 \\
+\end{aligned}
+$$
+
+Now let's look at this moment condition in more detail:
+
+$$
+\begin{aligned}
+& E[\psi_{ATT}^{Y} - \tau_{LATT} \cdot \psi_{ATT}^{D}] = 0 \\
+& E[(\tilde{Y}_{ATT}^{Z} - \tau_{ATT}^{Y} \frac{Z}{h}) - \tau_{LATT} \cdot (\tilde{D}_{ATT}^{Z} - \tau_{ATT}^{D} \frac{Z}{h})] = 0 \\
+& E[\underset{Residual \ Part}{\underbrace{(\tilde{Y}_{ATT}^{Z} - \tau_{LATT}\cdot\tilde{D}_{ATT}^{Z})}} + \underset{Centering \ Part}{\underbrace{(- \tau_{ATT}^{Y} \frac{Z}{h} + \tau_{LATT}\cdot\tau_{ATT}^{D} \frac{Z}{h})}}] = 0 \\
+\end{aligned}
+$$
+
+Let's zoom in on the centering part, plug in the definition of $\tau_{LATT}$ and show that its expectation is equal to zero:
+
+$$
+\begin{aligned}
+& E[- \tau_{ATT}^{Y} \frac{Z}{h} + \tau_{LATT}\cdot\tau_{ATT}^{D} \frac{Z}{h}] \\
+& = E[- \tau_{ATT}^{Y} \frac{Z}{h} + \frac{\tau_{ATT}^{Y}}{\tau_{ATT}^{D}} \cdot\tau_{ATT}^{D} \frac{Z}{h}] \\
+& = E[- \tau_{ATT}^{Y} \frac{Z}{h} + \tau_{ATT}^{Y} \frac{Z}{h}] \\
+& = 0 \\
+\end{aligned}
+$$
+
+Therefore the moment condition simplifies to:
+
+$$
+E[\tilde{Y}_{ATT}^{Z} - \tau_{LATT}\cdot\tilde{D}_{ATT}^{Z}] = 0
+$$
+
+With the two linear score components $\psi_a(O; \eta) = (-1) \tilde{D}_{ATT}^{Z}$ and $\psi_b(O; \eta) = \tilde{Y}_{ATT}^{Z}$.
+
+Now that we have derived the influence function and the empirical Neyman-orthogonal moment condition for our new parameter $\tau_{LATT}$, we can use following procedure to estimate $\hat\tau_{LATT}$ using the Double Machine Learning framework:
+
+1.  Estimate the nuisance parameters $m_{Z}(0,X)$, $e_{Z}(0,X)$, $h(X)$ and $h$ with cross-fitted high quality machine learning methods.
+
+2.  Estimate the target parameter $\tau_{LATT}$ by solving the empirical moment condition:
+
+$$
+\hat\tau_{LATT} = - \frac{\sum_{i} \psi_b(O_i; \hat{\eta}_i)}{\sum_{i} \psi_a(O_i; \hat{\eta}_i)}
+$$
+
+Plugging our derived linear scores in:
+
+$$
+\hat\tau_{LATT} = - \frac{\sum_{i} \tilde{Y}_{ATT,i}^{Z}}{\sum_{i} (-1) \tilde{D}_{ATT,i}^{Z}} = \frac{\sum_{i} \tilde{Y}_{ATT,i}^{Z}}{\sum_{i} \tilde{D}_{ATT,i}^{Z}}
+$$
+
+3.  Estimate standard errors using the derived influence function:
+
+$$
+\begin{aligned}
+& \hat{\sigma}_{LATT} = \operatorname{Var}(\Psi_{LATT}) \\
+& \implies \widehat{\operatorname{se}}(\hat{\tau}_{LATT}) = \sqrt{\frac{\hat{\sigma}_{LATT}}{n}}
+\end{aligned}
+$$
