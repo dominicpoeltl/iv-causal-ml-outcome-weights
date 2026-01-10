@@ -1,0 +1,3 @@
+[submodule "OutcomeWeights"]
+	path = OutcomeWeights
+	url = https://github.com/dompoe1609/OutcomeWeights_MCKnaus.git
