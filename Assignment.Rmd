@@ -19,23 +19,22 @@ output:
 
 To identify the LATT we use the following standard IV assumptions:
 
-(A1) Random Assignment of Z: $Z \perp (Y(1), Y(0), D(1), D(0)) \mid X$
+(A1) Random Assignment of $Z$: $Z \perp (Y(1), Y(0), D(1), D(0)) \mid X$
 
 (A2) Exclusion Restriction: $Y(z,D(z)) = Y(D(z))$ for all $z$
 
 This also implies:
 
 $$
-
-Y(D(1)) = Y(1)D(1) + Y(0)(1-D(1)) \\
-
-Y(D(0)) = Y(1)D(0) + Y(0)(1-D(0))
-
+\begin{aligned}
+& Y(D(1)) = Y(1)D(1) + Y(0)(1-D(1)) \\
+& Y(D(0)) = Y(1)D(0) + Y(0)(1-D(0))
+\end{aligned}
 $$
 
 (A3) Relevance: $E[D(1)] \neq E[D(0)]$
 
-Additionally we impose the assumption of monotonicity and rule out defiers:
+Additionally we impose the assumption of monotonicity and rule out Defiers:
 
 (A4) Monotonicity: $P(D(1) \geq D(0)) = 1$
 
@@ -58,18 +57,18 @@ $$
 \end{aligned}
 $$
 
-We can divide this based on four diffeerent compliance types:
+We can divide this based on four different compliance types:
 
 1.  Always Takers: $D(1)=1, D(0)=1 \implies D(1) - D(0) = 0$
 2.  Never Takers: $D(1)=0, D(0)=0 \implies D(1) - D(0) = 0$
 3.  Compliers: $D(1)=1, D(0)=0 \implies D(1) - D(0) = 1$
 4.  Defiers: $D(1)=0, D(0)=1 \implies D(1) - D(0) = -1$
 
-Under our monotonicity assumption (A4) we can rule out defiers. Formally this implies that $P(D(1) - D(0) = -1 ) = P(Defiers) = P(Defiers \mid D=1) = 0$.
+Under our monotonicity assumption (A4) we can rule out Defiers. Formally this implies that $P(D(1) - D(0) = -1 ) = P(Defiers) = P(Defiers \mid D=1) = 0$.
 
-Also, when we condition on D = 1, never takers are not included in this group, since they never take the treatment regardless of the instrument value. Thus, when we condition on D = 1, the only compliance types that remain are always takers and compliers. Formally, $P(Never Takers | D=1) = 0$.
+Also, when we condition on $D = 1$, Never Takers ($D(0)=D(1)=0$) are impossible. Thus, when we condition on $D = 1$, the only compliance types that remain are Always Takers and Compliers. Formally, $P(Never Takers | D=1) = 0$.
 
-We can rewite our previous equation using the law of iterated expectations and conditioning on the compliance types:
+We can rewrite our previous equation using the law of iterated expectations and conditioning on the compliance types:
 
 $$
 \begin{aligned}
@@ -87,7 +86,7 @@ $$
 \end{aligned}
 $$
 
-We have show the equivalence of:
+We have shown the equivalence of:
 
 $$
 E[ Y(1,D(1)) - Y(0,D(0)) \mid D=1] = E[ Y(1)-Y(0) \mid D(0)=0, D(1)=1, D=1] P(D(0)=0, D(1)=1 \mid D=1)
@@ -124,18 +123,18 @@ E[ Y(1)-Y(0) \mid D(0)=0, D(1)=1, D=1] = \frac{E[ Y(1,D(1)) - Y(0,D(0)) \mid D=1
 $$
 Which we wanted to show.
 
-We will now use this result to show identification of $\tau_{LATT}$ under our IV assumptions (A1)-(A5).
+We will now use this result to show identification of $\tau_{LATT}$ under our IV assumptions $(A1)-(A5)$.
 
 Starting with the numerator:
 
-We will proced tho show that the numerator is identifed by follwing AIPW structure, which we can split in regression and correction part:
+We will proceed tho show that the numerator is identified by following AIPW structure, which we can split in regression and correction part:
 
 $$\frac{1}{P(D=1)} E \left[ Z Y - \left( \underset{\text{Regression Part}}{\underbrace{P(Z=1|X) E[Y|X, Z=0]}} + \underset{\text{Correction Part}}{\underbrace{\frac{P(Z=1|X)(1-Z)(Y - E[Y|X, Z=0])}{1 - P(Z=1|X)}}} \right) \right]$$
 
 
 We start by basic rewriting.
 
-We have already shown that we can use the exclusion restriction (A2) to rewrite the numerator as:
+We have already shown that we can use the exclusion restriction $(A2)$ to rewrite the numerator as:
 
 $$
 E[ Y(1,D(1)) - Y(0,D(0)) \mid D=1] = E[ Y(D(1)) - Y(D(0)) \mid D=1]
@@ -152,9 +151,9 @@ We can again identify 4 types:
 1. Always Takers: $D(1)=1, D(0)=1 \implies Y(D(1)) - Y(D(0)) = 0$
 2. Never Takers: $D(1)=0, D(0)=0 \implies Y(D(1)) - Y(D(0)) = 0$
 3. Compliers: $D(1)=1, D(0)=0 \implies Y(D(1)) - Y(D(0)) = Y(1) - Y(0)$
-4. Defiers: Ruled out by Montonicity (A4)
+4. Defiers: Ruled out by Monotonicity $(A4)$
 
-So the term $E[ (Y(D(1)) - Y(D(0))) \cdot D ]$ is non-zero only for compliers. We also already know from above that for complies $D=Z$. Therefore we can  replace $D$ in the numerator expectation:
+So the term $E[ (Y(D(1)) - Y(D(0))) \cdot D ]$ is non-zero only for Compliers. We know by definition that for Compliers $D=Z$. Therefore we can replace $D$ in the numerator expectation:
 
 $$E[ (Y(D(1)) - Y(D(0))) \cdot D ] = E[ (Y(D(1)) - Y(D(0))) \cdot Z ]$$
 
@@ -162,7 +161,7 @@ Now let's focus on the regression part:
 
 $$E[ P(Z=1|X) E[Y|X, Z=0] ]$$
 
-Using Consistency and (A1 - $Z \perp Y(D(0)) \mid X$) we can write:
+Using Consistency and ($A1$ - $Z \perp Y(D(0)) \mid X$) we can write:
 
 $$
 \begin{aligned}
@@ -179,7 +178,7 @@ Now let's look at the correction part:
 
 $$E \left[ \frac{P(Z=1|X)}{1 - P(Z=1|X)} (1-Z) (Y - E[Y|X, Z=0]) \right]$$
 
-By (A1) Random Assignment and (A2) Exclusion and (A5) Consistency: 
+By $(A1)$ Random Assignment and $(A2)$ Exclusion and $(A5)$ Consistency: 
 
 $$
 \begin{aligned}
@@ -216,25 +215,54 @@ Now we look at the full AIPW representation of the numerator again, which we wro
 
 $$E \left[ Z Y - \left( \text{Regression Part} + \text{Correction Part} \right) \right]$$
 
-We have shown that the regression part is equal to $E[ Z Y(D(0)) ]$ and the correction part is equal to 0. Additionally since $Z=1$ under Consistency $D=D(1)$ and  $Y = Y(D(1))$. Then the first part becomes:
+We have shown that the regression part is equal to $E[ Z Y(D(0)) ]$ and the correction part is equal to $0$. Additionally since $Z=1$ under Consistency $D=D(1)$ and  $Y = Y(D(1))$. Then the first part becomes:
 
 $$E[ZY] = E[Z Y(D(1))]$$
 
-Putting everything together we and remebering our first result when rewriting $ \frac{E[ Z (Y(D(1)) - Y(D(0))) ]}{P(D=1)} = E[ Y(D(1)) - Y(D(0)) \mid D=1 ] $ we get:
+Putting everything together we and remembering our first result when rewriting $\frac{E[ Z (Y(D(1)) - Y(D(0))) ]}{P(D=1)} = E[ Y(D(1)) - Y(D(0)) \mid D=1 ]$ we get:
 
 $$
 \begin{aligned}
 & \frac{1}{P(D=1)} E \left[ Z Y - \left( \text{Regression Part} + \text{Correction Part} \right) \right] \\
 & = \frac{1}{P(D=1)} E[Z Y(D(1))] - E[ Z Y(D(0)) ] \\
 & = \frac{E[ Z (Y(D(1)) - Y(D(0))) ]}{P(D=1)} \\
-& = E[ Y(D(1)) - Y(D(0)) \mid D=1 ] \\ 
 \end{aligned}
 $$
+
+We now verify that this expression matches our target by using the LIE and conditioning on compliance types:
+
+$$
+\begin{aligned}
+& \frac{E[ Z (Y(D(1)) - Y(D(0))) ]}{P(D=1)} \\
+& \stackrel{\text{(LIE)}}{=} \frac{1}{P(D=1)} \Big(  \underset{\textstyle{= 0}}{\underbrace{E[ Z(Y(D(1))-Y(D(0))) \mid \text{Always Takers}]}} \cdot P(\text{Always Takers}) \\
+& \quad +  \underset{\textstyle{= 0}}{\underbrace{E[ Z(Y(D(1))-Y(D(0))) \mid \text{Never Takers}]}} \cdot P(\text{Never Takers}) \\
+& \quad + E[ Z(Y(D(1))-Y(D(0))) \mid \text{Compliers}] \cdot P(\text{Compliers}) \\
+& \quad + E[ Z(Y(D(1))-Y(D(0))) \mid \text{Defiers}] \cdot  \underset{\textstyle{= 0 \quad (A4)}}{\underbrace{P(\text{Defiers}}})\Big) \\
+& = \frac{E[ Z(Y(1)-Y(0)) \mid \text{Compliers}] \cdot P(\text{Compliers})}{P(D=1)} \\
+\end{aligned}
+$$
+
+Do the same for the target expression, here we only need to condition on Always Takers and Compliers since Never Takers are ruled out by conditioning on D=1 and Defiers are ruled out by monotonicity $(A4)$. At the end we use the fact that for Compliers $D=Z$ by definition:
+
+$$
+\begin{aligned}
+& \frac{E[ D(Y(D(1)) - Y(D(0))) ]}{P(D=1)} \\
+& \stackrel{\text{(LIE)}}{=} \frac{1}{P(D=1)} \Big( \underset{\textstyle{= 0}}{\underbrace{E[ D(Y(D(1))-Y(D(0))) \mid \text{Always Takers}]}} \cdot P(\text{Always Takers}) \\
+& \quad + E[ D(Y(D(1))-Y(D(0))) \mid \text{Compliers}] \cdot P(\text{Compliers}) \Big) \\
+& = \frac{1}{P(D=1)} \Big( 0 + E[ Z(Y(1)-Y(0)) \mid \text{Compliers}] \cdot P(\text{Compliers}) \Big) \\
+& = \frac{E[ Z(Y(1)-Y(0)) \mid \text{Compliers}] \cdot P(\text{Compliers})}{P(D=1)} \\
+\end{aligned}
+$$
+
+Since the two expressions are equal, we have shown that:
+
+$$\frac{1}{P(D=1)} E \left[ Z Y - \left( P(Z=1|X) E[Y|X, Z=0] + \frac{P(Z=1|X)(1-Z)(Y - E[Y|X, Z=0])}{1 - P(Z=1|X)} \right) \right] = E[ Y(1,D(1)) - Y(0,D(0)) \mid D=1]$$
+
 Therefore we have shown that the numerator is identified by the AIPW structure above.
 
 Let's do the same for the denominator:
 
-We will proceed tho show that the denominator is identified by the same AIPW structure:
+We will proceed to show that the denominator is identified by the same AIPW structure:
 
 $$\frac{1}{P(D=1)} E \left[ Z D - \left( \underset{\text{Regression Part}}{\underbrace{P(Z=1|X) E[D|X, Z=0]}} + \underset{\text{Correction Part}}{\underbrace{\frac{P(Z=1|X)(1-Z)(D - E[D|X, Z=0])}{1 - P(Z=1|X)}}} \right) \right]$$
 
@@ -249,16 +277,16 @@ We can again identify 4 types:
 1. Always Takers: $D(1)=1, D(0)=1 \implies D(1) - D(0) = 0$
 2. Never Takers: $D(1)=0, D(0)=0 \implies D(1) - D(0) = 0$
 3.Compliers: $D(1)=1, D(0)=0 \implies D(1) - D(0) = 1$
-4.Defiers: Ruled out by Montonicity (A4)
+4.Defiers: Ruled out by Monotonicity $(A4)$
 
-So the term $E[ (D(1) - D(0)) \cdot D ]$ is non-zero only for compliers. We also already know from above that for complies $D=Z$. Therefore we can  replace $D$ (the multiplier) in the denominator expectation:
+So the term $E[ (D(1) - D(0)) \cdot D ]$ is non-zero only for Compliers. We also already know from above that for Compliers $D=Z$. Therefore we can  replace $D$ (the multiplier) in the denominator expectation:
 
 $$E[ (D(1) - D(0)) \cdot D ] = E[ (D(1) - D(0)) \cdot Z ]$$
 Now let's focus on the regression part:
 
 $$E[ P(Z=1|X) E[D|X, Z=0] ]$$
 
-Using Consistency and (A1 - $Z \perp D(0) \mid X$) we can write:
+Using Consistency and ($A1$ - $Z \perp D(0) \mid X$) we can write:
 
 $$\begin{aligned}
 & E[ P(Z=1|X) E[D|X, Z=0] ] \\
@@ -272,7 +300,7 @@ $$\begin{aligned}
 Now let's look at the correction part:
 $$E \left[ \frac{P(Z=1|X)}{1 - P(Z=1|X)} (1-Z) (D - E[D|X, Z=0]) \right]$$
 
-By (A1) Random Assignment and (A5) Consistency:
+By $(A1)$ Random Assignment and $(A5)$ Consistency:
 
 $$\begin{aligned}
 & E[D|X, Z=0] \\
@@ -304,7 +332,7 @@ $$\begin{aligned}
 Now we look at the full AIPW representation of the denominator again, which we wrote as:
 
 $$E \left[ Z D - \left( \text{Regression Part} + \text{Correction Part} \right) \right]$$
-We have shown that the regression part is equal to $E[ Z D(0) ]$ and the correction part is equal to 0.
+We have shown that the regression part is equal to $E[ Z D(0) ]$ and the correction part is equal to $0$.
 
 Additionally since $Z=1$ under Consistency $D=D(1)$. 
 
@@ -312,28 +340,58 @@ Then the first part becomes:
 
 $$E[ZD] = E[Z D(1)]$$
 
-Putting everything together we and remebering our first result when rewriting $\frac{E[ Z (D(1) - D(0)) ]}{P(D=1)} = E[ D(1) - D(0) \mid D=1 ]$ we get:
+Putting everything together we and remembering our first result when rewriting $\frac{E[ Z (D(1) - D(0)) ]}{P(D=1)} = E[ D(1) - D(0) \mid D=1 ]$ we get:
 
 $$\begin{aligned}
 & \frac{1}{P(D=1)} E \left[ Z D - \left( \text{Regression Part} + \text{Correction Part} \right) \right] \\
 & = \frac{1}{P(D=1)} E[Z D(1)] - E[ Z D(0) ] \\
 & = \frac{E[ Z (D(1) - D(0)) ]}{P(D=1)} \\
-& = E[ D(1) - D(0) \mid D=1 ] \\ 
 \end{aligned}$$
 
-Therefore we have shown that the denominator is identified by the AIPW structure above.
+We now verify that this expression matches our target by using the LIE and conditioning on compliance types:
 
-We have succesfully shown that both the numerator and denominator of the LATT are identified by the AIPW-ATT structure under our IV assumptions (A1)-(A5). Thus the LATT itself is identified as the ratio of the two identified AIPW-ATT ratios. 
+$$\begin{aligned}
+& \frac{E[ Z (D(1) - D(0)) ]}{P(D=1)} \\
+& \stackrel{\text{(LIE)}}{=} \frac{1}{P(D=1)} \Big( \underset{\textstyle{= 0}}{\underbrace{E[ Z(D(1)-D(0)) \mid \text{Always Takers}]}} \cdot P(\text{Always Takers}) \\
+& \quad + \underset{\textstyle{= 0}}{\underbrace{E[ Z(D(1)-D(0)) \mid \text{Never Takers}]}} \cdot P(\text{Never Takers}) \\
+& \quad + E[ Z(D(1)-D(0)) \mid \text{Compliers}] \cdot P(\text{Compliers}) \\
+& \quad + E[ Z(D(1)-D(0)) \mid \text{Defiers}] \cdot \underset{\textstyle{= 0 \quad (A4)}}{\underbrace{P(\text{Defiers}}})\Big) \\
+& = \frac{E[ Z(1-0) \mid \text{Compliers}] \cdot P(\text{Compliers})}{P(D=1)} \\
+\end{aligned}$$
+
+Do the same for the target expression, here we only need to condition on Always Takers and Compliers since Never Takers are ruled out by conditioning on D=1 and Defiers are ruled out by monotonicity $(A4)$. At the end we use the fact that for Compliers $D=Z$ by definition:
+
+$$\begin{aligned}
+& \frac{E[ D(D(1) - D(0)) ]}{P(D=1)} \\
+& \stackrel{\text{(LIE)}}{=} \frac{1}{P(D=1)} \Big( \underset{\textstyle{= 0}}{\underbrace{E[ D(D(1)-D(0)) \mid \text{Always Takers}]}} \cdot P(\text{Always Takers}) \\
+& \quad + E[ D(D(1)-D(0)) \mid \text{Compliers}] \cdot P(\text{Compliers}) \Big) \\
+& = \frac{1}{P(D=1)} \Big( 0 + E[ Z(1-0) \mid \text{Compliers}] \cdot P(\text{Compliers}) \Big) \\
+& = \frac{E[ Z(1-0) \mid \text{Compliers}] \cdot P(\text{Compliers})}{P(D=1)} \\
+\end{aligned}$$
+
+Since the two expressions are equal, we have shown that:
+
+$$\frac{1}{P(D=1)} E \left[ Z D - \left( P(Z=1|X) E[D|X, Z=0] + \frac{P(Z=1|X)(1-Z)(D - E[D|X, Z=0])}{1 - P(Z=1|X)} \right) \right] = E[ D(1) - D(0) \mid D=1]$$
+
+We have successfully shown that both the numerator and denominator of the LATT are identified by the AIPW-ATT structure under our IV assumptions (A1)-(A5). Thus the LATT itself is identified as the ratio of the two identified AIPW-ATT ratios. 
+
+So in full:
+
+$$\tau_{LATT} = \frac{\frac{1}{P(D=1)} E \left[ Z Y - \left( P(Z=1|X) E[Y|X, Z=0] + \frac{P(Z=1|X)(1-Z)(Y - E[Y|X, Z=0])}{1 - P(Z=1|X)} \right) \right]}{\frac{1}{P(D=1)} E \left[ Z D - \left( P(Z=1|X) E[D|X, Z=0] + \frac{P(Z=1|X)(1-Z)(D - E[D|X, Z=0])}{1 - P(Z=1|X)} \right) \right]}$$
+
+Where the term $\frac{1}{P(D=1)}$ cancels but we will keep it for the influence function derivation.
 
 
 ### 2.3 Influence function derivation
+
+#### LATT
 
 We have shown in the previous section that the LATT can be expressed as a ratio of two ATTs. As we know the Neyman-orthogonal score for the ATT, we can use the chain rule to derive an influence function for the LATT.
 
 The Neyman orthogonal score of the ATT is given by:
 
 $$
-\psi_{ATT}(O;\theta;\eta) = \underset{\textstyle=\tilde{Y}_{ATT}}{\underbrace{ \frac{D}{e}(Y - m(0,X)) - \frac{(1-D)e(X)}{e(1-e(X))}(Y - m(0,X))}}  - \tau_{ATT} \frac{W}{e}
+\psi_{ATT}(O;\theta;\eta) = \underset{\textstyle=\tilde{Y}_{ATT}}{\underbrace{ \frac{D}{e}(Y - m(0,X)) - \frac{(1-D)e(X)}{e(1-e(X))}(Y - m(0,X))}}  - \tau_{ATT} \frac{D}{e}
 $$
 
 With $O=(D,X,Y)$, $\theta = \tau_{ATT}$, $\eta = (m(0,X), e(X), e)$ and the two linear score components $\psi_a(O;\eta) = (-1)\frac{D}{e}$ and $\psi_b(O;\eta) = \tilde{Y}_{ATT}$.
@@ -427,9 +485,7 @@ This is our final influence function for the LATT. We can observe that the final
 
 Before we can apply the Double Machine Learning framework we additionally need to derive the new empirical moment condition of $\tau_{LATT}$ and solve it.
 
-Before looking at the ratio of the two ATT Neyman-orthogonal score let's first
-
-We have shown that $\tau_{LATT}$ can be expressed by the ratio of two ATTs.
+To derive the moment condition, we recall that $\tau_{LATT}$ is the ratio of two ATTs:
 
 $$
 \begin{aligned}
@@ -492,3 +548,62 @@ $$
 & \implies \widehat{\operatorname{se}}(\hat{\tau}_{LATT}) = \sqrt{\frac{\hat{\sigma}_{LATT}}{n}}
 \end{aligned}
 $$
+
+### 2.4 Weight representation
+
+#### LATT
+
+In the package and in this exercise, we use smoothers for estimating the nuisance parameters. That means that the vector of $z$-specific predictions for $Y$ and $D$ can be expressed as:
+
+$$\hat{Y}_{0}^z = S_{0}^z Y \quad \text{and} \quad \hat{D}_{0}^z = S_{0}^z D$$
+
+where $S_0^z$ is the smoothing matrix.
+
+We start with the estimator for $\hat{\tau}_{LATT}$ derived in the previous section as the ratio of two ATTs (Effect of $Z$ on $Y$ divided by Effect of $Z$ on $D$). 
+
+In finite samples, this is the ratio of the empirical sums of the score functions. Note that the scaling factor $1/h$ (where $h=P(Z=1)$) appears in both the numerator and the denominator and thus cancels out:
+
+$$\hat{\tau}_{LATT} = \frac{\hat{\tau}_{ATT}^Y}{\hat{\tau}_{ATT}^D} = \frac{\mathbb{E}_n \left[ \frac{Z}{h}(Y - \hat{Y}_0^z) - \frac{(1-Z)h(X)}{h(1-h(X))} (Y - \hat{Y}_0^z) \right]}{\mathbb{E}_n \left[ \frac{Z}{h}(D - \hat{D}_0^z) - \frac{(1-Z)h(X)}{h(1-h(X))} (D - \hat{D}_0^z) \right]}$$
+
+Canceling $1/h$ and factoring out the residual terms $(Y - \hat{Y}_0^z)$ and $(D - \hat{D}_0^z)$:
+
+$$\hat{\tau}_{LATT} = \frac{\mathbb{E}_n \left[ \left( Z - \frac{(1-Z)h(X)}{1-h(X)} \right) (Y - \hat{Y}_0^z) \right]}{\mathbb{E}_n \left[ \left( Z - \frac{(1-Z)h(X)}{1-h(X)} \right) (D - \hat{D}_0^z) \right]}$$
+
+To simplify the notation, we define the weight term $\lambda^{new}$ as:
+
+$$\lambda^{new} = \frac{(1-Z)h(X)}{1-h(X)}$$
+
+We can now rewrite the estimator using matrix notation. Let $1_N$ be a vector of ones of length $N$. The numerator and denominator can be expressed using diagonal matrices for $Z$ and $\lambda^{new}$:
+
+$$\text{Numerator} = 1_N' \left[ \left( \text{diag}(Z) - \text{diag}(\lambda^{new}) \right) (Y - \hat{Y}_0^z) \right]$$
+
+$$\text{Denominator} = 1_N' \left[ \left( \text{diag}(Z) - \text{diag}(\lambda^{new}) \right) (D - \hat{D}_0^z) \right]$$
+
+Under the condition that we use a linear smoother such that $\hat{Y}_0^z = S_0^z Y$, we can substitute this into the numerator:
+
+$$
+\begin{aligned}
+\text{Numerator} &= 1_N' \left[ \left( \text{diag}(Z) - \text{diag}(\lambda^{new}) \right) (Y - S_0^z Y) \right] \\
+&= 1_N' \left[ \left( \text{diag}(Z) - \text{diag}(\lambda^{new}) \right) (I_N - S_0^z) \right] Y
+\end{aligned}
+$$
+
+The estimator can be written as a weighted sum of outcomes $\hat{\tau}_{LATT} = \omega Y$. By combining the denominator (which is a scalar) and the vector part of the numerator, we derive the expression for the outcome weights $\omega$:
+
+$$
+\begin{aligned}
+\omega &= \left( 1_N' \left[ \text{diag}(Z)(D - \hat{D}_0^z) - \text{diag}(\lambda^{new})(D - \hat{D}_0^z) \right] \right)^{-1} \\
+& \quad \times 1_N' \left[ \text{diag}(Z)(I_N - S_0^z) - \text{diag}(\lambda^{new})(I_N - S_0^z) \right]
+\end{aligned}
+$$
+
+Simplifying by grouping the diagonal matrices:
+
+$$
+\begin{aligned}
+\omega &= \left( 1_N' \left[ (\text{diag}(Z) - \text{diag}(\lambda^{new})) \cdot (D - \hat{D}_0^z) \right] \right)^{-1} \\
+& \quad \times 1_N' \left[ (\text{diag}(Z) - \text{diag}(\lambda^{new})) \cdot (I_N - S_0^z) \right]
+\end{aligned}
+$$
+
+This provides the explicit weight representation for the LATT.
