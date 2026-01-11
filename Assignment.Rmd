@@ -375,22 +375,13 @@ $$\frac{1}{P(D=1)} E \left[ Z D - \left( P(Z=1|X) E[D|X, Z=0] + \frac{P(Z=1|X)(1
 
 We have successfully shown that both the numerator and denominator are identified by the AIPW-ATT structure under our IV assumptions (A1)-(A5).
 
+We have therefore also shown that the LATT is identified as the ratio of the two AIPW-ATT expressions.
+
 In full:
 
-$$\tau_{LATT} = \frac{\frac{1}{P(D=1)} E \left[ Z Y - \left( P(Z=1|X) E[Y|X, Z=0] + \frac{P(Z=1|X)(1-Z)(Y - E[Y|X, Z=0])}{1 - P(Z=1|X)} \right) \right]}{\frac{1}{P(D=1)} E \left[ Z D - \left( P(Z=1|X) E[D|X, Z=0] + \frac{P(Z=1|X)(1-Z)(D - E[D|X, Z=0])}{1 - P(Z=1|X)} \right) \right]}$$
+$$\tau_{LATT} = \frac{\frac{1}{P(D=1)} E \left[ Z Y - \left( P(Z=1|X) E[Y|X, Z=0] + \frac{P(Z=1|X)(1-Z)(Y - E[Y|X, Z=0])}{1 - P(Z=1|X)} \right) \right]}{\frac{1}{P(D=1)} E \left[ Z D - \left( P(Z=1|X) E[D|X, Z=0] + \frac{P(Z=1|X)(1-Z)(D - E[D|X, Z=0])}{1 - P(Z=1|X)} \right) \right]} \quad \blacksquare$$
 
 Where the term $\frac{1}{P(D=1)}$ cancels but we will keep it for the influence function derivation.
-
-
-In our proof we have demonstrated that the ratio of the AIPW-ATT identification expressions identifies the Treatment Effect of the Compliers, so the Local Average Treatment Effect (LATE), which corresponds to the treatment effect for only the Complier subpopulation.
-
-The LATT parameter natively however is a weighted average of effects of two groups within the Treated population: Always Takers and Compliers.
-
-To interpret this parameter as the Local Average Treatment Effect on the Treated (LATT), we need to additionally impose the assumption of One-Sided Non-Compliance:
-
-(A6) No Always Takers: $P(D(0)=1)=0$.
-
-Under (A6), the "Treated" population ($D=1$) consists exclusively of Compliers, as no individual takes the treatment without assignment. Thus, the identified LATE is equivalent to the LATT and we have shown identification of the LATT with the ratio of the two AIPW-ATT expressions under assumptions (A1)-(A6).
 
 
 ### 2.3 Influence function derivation
@@ -685,7 +676,7 @@ plot(dml_5f)
 
 Interestingly, the point estimates of AIPW-ATT and the new WALD-AIPW_LATT are quite similar. This means for the given data, that controlling for unobservables (which is done in Wald_AIPW_LATT via the instrument) does not change the estimate much. This suggests that selection bias introduced by unobservables is low and the unconfoundedness assumption for unobservables seems to hold for the 401(k) dataset. 
 
-When comapring the poist estimate of the new Wald_AIPW_LATT vs the WALD-AIPW (classical LATE) we can see that they differ considerably with the LATE estimate being consdierably lower. The WALD-AIPW-LATT and the WALD-AIPW are trying to balance the covariate distribution differently. While the classical WALD-AIPW estiamtor tr
+When comparing the point estimate of the new Wald_AIPW_LATT vs the WALD-AIPW (classical LATE) we can see that they differ considerably with the LATE estimate being considerably lower. The WALD-AIPW-LATT and the WALD-AIPW are trying to balance the covariate distribution differently. While the classical WALD-AIPW estimator tries to minimize the variance of observables between treated and untreated, the WALD-AIPW_LATT estimator balances the covariate distribution to match the weights of the treated ($D=1$). If the estimates differ and the WALD-AIPW-LATT is higher this implies, that the sub-population with higher treatment probabilities have larger treatment effects. By re-weighting to target the actual treated population, the WALD-AIPW-LATT estimator captures these larger gains, whereas the standard Wald estimator focuses on the average complier, who seem to have lower treatment effects. This means also that in this dataset there is probably a lot of effect heterogeneity, especially between the treated and untreated population.
 
 
 Let's extract the weights and confirm numerical equivalence.
