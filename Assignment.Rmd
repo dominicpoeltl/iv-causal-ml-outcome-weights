@@ -373,13 +373,24 @@ Since the two expressions are equal, we have shown that:
 
 $$\frac{1}{P(D=1)} E \left[ Z D - \left( P(Z=1|X) E[D|X, Z=0] + \frac{P(Z=1|X)(1-Z)(D - E[D|X, Z=0])}{1 - P(Z=1|X)} \right) \right] = E[ D(1) - D(0) \mid D=1]$$
 
-We have successfully shown that both the numerator and denominator of the LATT are identified by the AIPW-ATT structure under our IV assumptions (A1)-(A5). Thus the LATT itself is identified as the ratio of the two identified AIPW-ATT ratios. 
+We have successfully shown that both the numerator and denominator are identified by the AIPW-ATT structure under our IV assumptions (A1)-(A5).
 
-So in full:
+In full:
 
 $$\tau_{LATT} = \frac{\frac{1}{P(D=1)} E \left[ Z Y - \left( P(Z=1|X) E[Y|X, Z=0] + \frac{P(Z=1|X)(1-Z)(Y - E[Y|X, Z=0])}{1 - P(Z=1|X)} \right) \right]}{\frac{1}{P(D=1)} E \left[ Z D - \left( P(Z=1|X) E[D|X, Z=0] + \frac{P(Z=1|X)(1-Z)(D - E[D|X, Z=0])}{1 - P(Z=1|X)} \right) \right]}$$
 
 Where the term $\frac{1}{P(D=1)}$ cancels but we will keep it for the influence function derivation.
+
+
+In our proof we have demonstrated that the ratio of the AIPW-ATT identification expressions identifies the Treatment Effect of the Compliers, so the Local Average Treatment Effect (LATE), which corresponds to the treatment effect for only the Complier subpopulation.
+
+The LATT parameter natively however is a weighted average of effects of two groups within the Treated population: Always Takers and Compliers.
+
+To interpret this parameter as the Local Average Treatment Effect on the Treated (LATT), we need to additionally impose the assumption of One-Sided Non-Compliance:
+
+(A6) No Always Takers: $P(D(0)=1)=0$.
+
+Under (A6), the "Treated" population ($D=1$) consists exclusively of Compliers, as no individual takes the treatment without assignment. Thus, the identified LATE is equivalent to the LATT and we have shown identification of the LATT with the ratio of the two AIPW-ATT expressions under assumptions (A1)-(A6).
 
 
 ### 2.3 Influence function derivation
@@ -607,3 +618,130 @@ $$
 $$
 
 This provides the explicit weight representation for the LATT.
+
+
+### 2.6 Replication of average effects R notebook
+
+We replicate the balancing check of the Treatment Effect Estimators as Weighted Outcomes notebook with our new LATT estimator.
+
+First we load all necessary libraries plus the new version of the OutcomeWeights package we created.
+
+
+```{r}
+library(devtools)
+
+# Define the relative path to where our Outcome Wights package is located
+local_path <- "./OutcomeWeights"
+
+# Install the package from our local directory
+install_local(local_path, force = TRUE)
+
+# Load the library
+library(OutcomeWeights)
+
+# Now the rest of the necessary libraries
+if (!require("hdm")) install.packages("hdm", dependencies = TRUE); library(hdm)
+if (!require("grf")) install.packages("grf", dependencies = TRUE); library(grf)
+if (!require("cobalt")) install.packages("cobalt", dependencies = TRUE); library(cobalt)
+if (!require("tidyverse")) install.packages("tidyverse", dependencies = TRUE); library(tidyverse)
+if (!require("viridis")) install.packages("viridis", dependencies = TRUE); library(viridis)
+if (!require("gridExtra")) install.packages("gridExtra", dependencies = TRUE); library(gridExtra)
+
+# Set the seed for reproducibility
+set.seed(1234)
+```
+
+
+First we load the data and create the necessary variables.
+
+```{r}
+data(pension)
+
+# Treatment
+D = pension$p401
+# Instrument
+Z = pension$e401
+# Outcome
+Y = pension$net_tfa
+# Controls
+X = model.matrix(~ 0 + age + db + educ + fsize + hown + inc + male + marr + pira + twoearn, data = pension)
+var_nm = c("Age","Benefit pension","Education","Family size","Home owner","Income","Male","Married","IRA","Two earners")
+colnames(X) = var_nm
+```
+
+Let's run the DML implementation of the package with 5-fold-cross-fitting.
+
+We also include the Wald-AIPW and AIPW-ATT estimators, as they are especially interesting for comparison.
+
+
+```{r}
+# 5 folds
+dml_5f = dml_with_smoother(Y,D,X,Z,
+                           n_cf_folds = 5,
+                           estimators=c("Wald_AIPW_LATT", "Wald_AIPW", "AIPW_ATT"))
+results_dml_5f = summary(dml_5f)
+plot(dml_5f)
+```
+
+Interestingly, the point estimates of AIPW-ATT and the new WALD-AIPW_LATT are quite similar. This means for the given data, that controlling for unobservables (which is done in Wald_AIPW_LATT via the instrument) does not change the estimate much. This suggests that selection bias introduced by unobservables is low and the unconfoundedness assumption for unobservables seems to hold for the 401(k) dataset. 
+
+When comapring the poist estimate of the new Wald_AIPW_LATT vs the WALD-AIPW (classical LATE) we can see that they differ considerably with the LATE estimate being consdierably lower. The WALD-AIPW-LATT and the WALD-AIPW are trying to balance the covariate distribution differently. While the classical WALD-AIPW estiamtor tr
+
+
+Let's extract the weights and confirm numerical equivalence.
+
+```{r}
+omega_dml_5f = get_outcome_weights(dml_5f)
+cat("ω'Y replicates point etimates?", 
+    all.equal(as.numeric(omega_dml_5f$omega %*% Y),
+      as.numeric(results_dml_5f[,1])
+    ))
+```
+
+The output confirms that the weight representation replicates the point estimates of all three estimators including our new Wald-AIPW_LATT estimator,
+
+Now let's recreate the covariance balancing checks.
+
+
+```{r}
+threshold = 0.1
+
+create_love_plot = function(title, index) {
+  love.plot(
+    D ~ X,
+    weights = list(
+      "5-fold" = omega_dml_5f$omega[index, ] * (2*D-1)
+    ),
+    position = "bottom",
+    title = title,
+    thresholds = c(m = threshold),
+    var.order = "unadjusted",
+    binary = "std",
+    abs = TRUE,
+    line = TRUE,
+    colors = viridis(3), # color-blind-friendly
+    shapes = c("circle", "triangle", "diamond")
+  )
+}
+
+# Now you can call this function for each plot:
+love_plot_waipw_latt = create_love_plot("Wald-AIPW-LATT", 1)
+love_plot_waipw = create_love_plot("Wald-AIPW", 2)
+love_plot_aipw_att = create_love_plot("AIPW-ATT", 3)
+love_plot_waipw_latt
+love_plot_waipw
+love_plot_aipw_att
+```
+
+The Love plots confirm that our derived LATT weights are highly effective for covariate balancing in the given data. The Absolute Standardized Mean Differences (ASMDs) for all covariates are well below the threshold of 0.1, indicating excellent balance between the treated and control groups after weighting, even for the initially highly imbalanced covariates like "Income" or "Home Owner".
+
+The Wald-AIPW-LATT estimator balancing looks quite similar to the AIPW-ATT estimator, which is expected as both estimators target the effect within the Treated population and therefore target the same covariate distribution of the Treated subgroup. This connects to the similar point estimates from above. The Wald-AIPW estimator also achieves good balance, but it targets the subgroup of Compliers resulting in slightly different balances for some covariates, for example "Benfit pension" or "Male". That the covariance balancing is working also implies that the observed differenting point estimates between Wald-AIPW-LATT and WALD-AIPW are not driven by imbalances in observed covariates but rather by treatment effect heterogeneity between the treated subgroup and the average complier.
+
+Finally, let's also look at the descriptive statistics of the weights.
+
+
+```{r}
+summary(omega_dml_5f)
+```
+
+We can see that the weights of the new WALD-AIPW_LATT are similar to the weights of the WALD_AIPW estimator only scale normalized.
