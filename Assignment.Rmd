@@ -1,6 +1,6 @@
 ---
 title: "Group Assignment Causal Machine Learning"
-authors: "Egor Trushkov, 6672874; Dominic Pöltl, 6618670"
+author: "Egor Trushkov, 6672874; Dominic Pöltl, 6618670"
 date: "`r Sys.Date()`"
 output:
   html_notebook:
@@ -9,19 +9,75 @@ output:
     code_folding: show
 ---
 
-### 2.1 Literature Review
+### **2.1 Literature Review**
 
-...
+Before proceeding to identification and estimation of the LATT and LATU, let's briefly review the definition and usage of the LATT/LATU by taking a look at "Testing the Unconfoundedness Assumption via Inverse Probability Weighted Estimators of (L)ATT" by Stephen G. Donald, Yu-Chin Hsu & Robert P. Lieli [1].
 
-### 2.2 Identification of LATT/LATU
+Donald et al. define the LATT as follows:
 
-#### LATT
+$$\tau_{t} ≡ E[Y (1) − Y (0)  \mid  D(1) = 1,D(0) = 0,D = 1].$$
 
-To identify the LATT we use the following standard IV assumptions:
+Contrary to the LATE, which the authors define as the "ATE (Average Treatment Effect) in the complier subpopulation" and is introduced as $\tau ≡ E[Y (1) − Y (0)  \mid  D(1) = 1,D(0) = 0]$, the LATT "is the ATE among those compliers who actually receive the treatment". This connects to the conditioning sets in their definitions, where the LATE conditions on $D(1) = 1,D(0) = 0$, which targets the subpopulation of compliers, as they take the treatment when assigned to it ($Z=1 \implies D=1$), and don't take it when not assigned $Z=0 \implies D=0$. The LATT on the other hand only distinguishes itself from the LATE by besides conditioning on the complier subpopulation, additionally conditioning on the subpopulation, which actually receives the treatment ($D=1$).
 
-(A1) Random Assignment of $Z$: $Z \perp (Y(1), Y(0), D(1), D(0)) \mid X$
+After the defintion the authors also point out, that because we are only in the complier subpopulation, in which $D=1$ implies $Z=1$ by definition, the LATT can also be written as:
 
-(A2) Exclusion Restriction: $Y(z,D(z)) = Y(D(z))$ for all $z$
+$$\tau_{t} = E[Y (1) − Y (0)  \mid  D(1) = 1,D(0) = 0,Z = 1].$$
+
+We will use this logic later when rewriting the LATT as a ratio of the ATT of the instrument on the outcome and the ATT of the instrument on the treatment.
+
+This also means of the treatment assignment is completely random, the LATE and LATT are equivalent, as conditioning on $Z=1$ is the same as not conditioning on $Z$.
+
+The main interest of the authors in the LATT is an interesting property if the critical assumption of one-sided noncompliance can be made. Donald et al. define one-sided noncompliance technically as $P[D(0) = 0] = 1$, which means the subpopulation of people not being assigned to the instrument have no chance of taking up the treatment regardless. This effectively rules out the presence of Always Takers in the population. Furthermore this can be seen as a strengthening of the monotonicity assumption which we will define in the next section and use for identification, as it not only rules out Defiers like the montonicity assumption, but also Always Takers.
+
+Under the assumption of one-sided noncompliance Donald et al. show that the LATT is equal to the ATT:
+
+$$ 
+\begin{aligned}
+& LATT = E[Y (1) − Y (0)  \mid  D(1) = 1,D(0) = 0,D = 1] \\
+& = E[Y (1) − Y (0)  \mid  D(1) = 1,D = 1] \\
+& = E[Y (1) − Y (0)  \mid  D = 1] = ATT \\
+\end{aligned}
+$$
+
+This is intuitive as under one-sided noncompliance the treated subpopulation only consists of Compliers, as Always Takers are ruled out by the assumption. Therefore conditioning on $D=1$ is equivalent to conditioning on the complier subpopulation.
+
+Furthermore the assumption of one-sided noncompliance is usually easily testable as we can observe the all necessary information in the data. We simply need to check if there are any observations with $Z=0$ and $D=1$. If there are none, one-sided noncompliance can be assumed to hold.
+
+This opens an interesting possibility for empirical applications by testing the unconfoundedness assumption. The authors define the unconfoundedness assumption in this paper as "Y (1) and Y (0) [being] mean-independent of D conditional on X". As it is pointed out in the paper, this allows to identify the ATT non-parametrically.
+
+In the following section of the paper the authors then build upon this insight and develop an Inverse Probability Weighted (IPW) estimator for the LATT relying on a set of instrumental variables and studying the ptotic properties of this estimator. They additionally introduce a consistent propensity score based estimator for the ATT developed originally by Hirano, Imbens and Ridder [2], which relies on the unconfoundedness assumption under a valid adjustment set.
+
+As stated above in the case in which unconfoundedness holds, LATT = ATT, therefore both estimators should converge to the same value asymptotically. The authors use this insight to build and prove the asymptotics of a test for the unconfoundednes assumption, which is based on a simple z-test and basically compares the estimated values of the two estimators.
+
+This provides a useful tool for empirical applications to test the unconfoundedness assumption based on observed data.
+
+The authors state that this is useful for several reasons:
+
+1.  Under the unconfoundedness assumption the ATE can be additionally identfied, being often preferred to the limited interpretability of the LATE.
+
+2.  If the unconfoundedness assumption holds additionally to having a valid instrument available, one can construct more efficient estimators by forming linear combinations of the two estimators based on IV and unconfoundedness, which the authors also show in the paper.
+
+The authors also define the LATU, which they call "LATNT" and summarize as "LATE for the nontreated" as:
+
+$$\tau_{nt}≡ E[Y (1) − Y (0)  \mid  D(1) = 1,D(0) = 0,D = 0].$$
+
+We can interpret this similar to the LATT, but now conditioning on the complier subpopulation which actually does not receive the treatment ($D=0$).
+
+The authors state that the LATU can be similarly used for testing the unconfoundedness assumption for the untreated subpopulation, by comparing an IPW estimator for the LATU with a propensity score based estimator for the ATU. Under a symmetrical assumption for one-sided noncompliance for the untreated subpopulation ($P[D(1) = 1] = 1$) the LATU is equal to the ATU, becasue Never Takers are ruled out and the subpopualtion $D=0$ only consists of compliers. Thus similar estimators for LATU and ATU can be used to construct a test for unconfoundedness.
+
+In this section the authors also mention one interesting subcase when both one-sided noncompliance assumptions hold simultaneously ($P[D(0) = 0] = 1$ and $P[D(1) = 1] = 1$). In this case there only exist compliers as, Always takers, Never Takers ad Defiers are all ruled out. In this case we can generalize $Z=D$ for the entire population and instrument validity and unconfoundedness coincide.
+
+As we now know the definition and usage of LATT and LATU from the literature, we can now proceed to identification and estimation.
+
+### **2.2 Identification of LATT/LATU**
+
+#### **LATT**
+
+To identify the LATT and LATU we use the following standard IV assumptions:
+
+**(A1) Random Assignment of** $Z$: $Z \perp (Y(1), Y(0), D(1), D(0))  \mid  X$
+
+**(A2) Exclusion Restriction:** $Y(z,D(z)) = Y(D(z))$ for all $z$
 
 This also implies:
 
@@ -32,96 +88,110 @@ $$
 \end{aligned}
 $$
 
-(A3) Relevance: $E[D(1)] \neq E[D(0)]$
+**(A3) Relevance:** $E[D(1)] \neq E[D(0)]$
 
 Additionally we impose the assumption of monotonicity and rule out Defiers:
 
-(A4) Monotonicity: $P(D(1) \geq D(0)) = 1$
+**(A4) Monotonicity:** $P(D(1) \geq D(0)) = 1$
 
-(A5) Consistency: $D = D(Z)$ and $Y = Y(z,D(z)) \stackrel{\text{(A2)}}{=} Y(D(z))$
+**(A5) Consistency:** $D = D(Z)$ and $Y = Y(z,D(z)) \stackrel{\text{(A2)}}{=} Y(D(z))$
 
-First we need to show, that $\tau_{LATT}$ that is defined as $\tau_{LATT} = E[Y(1)-Y(0) \mid D(0)=0, D(1)=1, D=1]$ can be written as the ratio of the ATT of the instrument on the outcome and the ATT of the instrument on the treatment:
+Note: As you can see above here we only assume monotonicity and not one-sided noncompliance as in the paper by Donald et al. Therefore LATT and ATT, as well as LATU and ATU are not equivalent in our setting. Additionally we only assume random assignment conditional on covariates $X$, meaning that we cannot assume that LATT, LATU and LATE are equivalent as well.
 
-$$\tau_{LATT} = \frac{E[ Y(1,D(1)) - Y(0,D(0)) \mid D=1]} {E[D(1) - D(0) \mid D=1]}$$
+First we need to show, that $\tau_{LATT}$ that is defined as $\tau_{LATT} = E[Y(1)-Y(0)  \mid  D(0)=0, D(1)=1, D=1]$ can be written as the ratio of the ATT of the instrument on the outcome and the ATT of the instrument on the treatment:
+
+$$\tau_{LATT} = \frac{E[ Y(1,D(1)) - Y(0,D(0))  \mid  Z=1]} {E[D(1) - D(0)  \mid  Z=1]}$$
 
 We start this proof with the numerator of the second term:
 
 $$
 \begin{aligned}
-& E[ Y(1,D(1)) - Y(0,D(0)) \mid D=1] \\
-& \stackrel{\text{(A2)}}{=} E[ Y(D(1)) - Y(D(0)) \mid D=1] \\
-& = E[ Y(1)D(1) + Y(0)(1-D(1)) - (Y(1)D(0) + Y(0)(1-D(0))) \mid D=1] \\
-&= E[Y(1)D(1) + Y(0) - Y(0)D(1) - Y(1)D(0) - Y(0) + Y(0)D(0) \mid D=1] \\
-& = E[ Y(1)(D(1)-D(0)) + Y(0)(D(0)-D(1)) \mid D=1] \\
-& = E[ (Y(1)-Y(0))(D(1)-D(0)) \mid D=1] \\
+& E[ Y(1,D(1)) - Y(0,D(0))  \mid  Z=1] \\
+& \stackrel{\text{(A2)}}{=} E[ Y(D(1)) - Y(D(0))  \mid  Z=1] \\
+& = E[ Y(1)D(1) + Y(0)(1-D(1)) - (Y(1)D(0) + Y(0)(1-D(0)))  \mid  Z=1] \\
+&= E[Y(1)D(1) + Y(0) - Y(0)D(1) - Y(1)D(0) - Y(0) + Y(0)D(0)  \mid  Z=1] \\
+& = E[ Y(1)(D(1)-D(0)) + Y(0)(D(0)-D(1))  \mid  Z=1] \\
+& = E[ (Y(1)-Y(0))(D(1)-D(0))  \mid  Z=1] \\
 \end{aligned}
 $$
 
 We can divide this based on four different compliance types:
 
-1.  Always Takers: $D(1)=1, D(0)=1 \implies D(1) - D(0) = 0$
-2.  Never Takers: $D(1)=0, D(0)=0 \implies D(1) - D(0) = 0$
-3.  Compliers: $D(1)=1, D(0)=0 \implies D(1) - D(0) = 1$
-4.  Defiers: $D(1)=0, D(0)=1 \implies D(1) - D(0) = -1$
+**1. Always Takers:** $D(1)=1, D(0)=1 \implies D(1) - D(0) = 0$
 
-Under our monotonicity assumption (A4) we can rule out Defiers. Formally this implies that $P(D(1) - D(0) = -1 ) = P(Defiers) = P(Defiers \mid D=1) = 0$.
+**2. Never Takers:** $D(1)=0, D(0)=0 \implies D(1) - D(0) = 0$
 
-Also, when we condition on $D = 1$, Never Takers ($D(0)=D(1)=0$) are impossible. Thus, when we condition on $D = 1$, the only compliance types that remain are Always Takers and Compliers. Formally, $P(Never Takers | D=1) = 0$.
+**3. Compliers:** $D(1)=1, D(0)=0 \implies D(1) - D(0) = 1$
+
+**4. Defiers:** $D(1)=0, D(0)=1 \implies D(1) - D(0) = -1$
+
+Under our monotonicity assumption (A4) we can rule out Defiers. Formally this implies that $P(D(1) - D(0) = -1 ) = P(Defiers) = P(Defiers  \mid  Z=1) = 0$.
+
+When we condition on $Z = 1$, Always Takers, Never Takers, and Compliers may be present. However, for Always Takers and Never Takers, the difference $D(1) - D(0)$ is exactly 0. Thus, these groups contribute nothing to the expectation, leaving only the Compliers.
 
 We can rewrite our previous equation using the law of iterated expectations and conditioning on the compliance types:
 
 $$
 \begin{aligned}
-& E[ (Y(1)-Y(0))(D(1)-D(0)) \mid D=1] \\
-& \stackrel{\text{(LIE)}}{=} E[ (Y(1)-Y(0))(D(1)-D(0)) \mid D=1, \text{Always Takers}] \cdot P(\text{Always Takers} \mid D=1) \\
-& + E[ (Y(1)-Y(0))(D(1)-D(0)) \mid D=1, \text{Never Takers}] \cdot \underset{\textstyle=0}{\underbrace{P(\text{Never Takers} \mid D=1)}} \\
-& + E[ (Y(1)-Y(0))(D(1)-D(0)) \mid D=1, \text{Compliers}] \cdot P(\text{Compliers} \mid D=1) \\
-& + E[ (Y(1)-Y(0))(D(1)-D(0)) \mid D=1, \text{Defiers}] \cdot P(\text{Defiers} \mid D=1) \\
-& \stackrel{\text{(A4)}}{=} 0 \cdot P(\text{Always Takers} \mid D=1) \\
-& + 0 \cdot P(\text{Never Takers} \mid D=1) \\
-& + E[ (Y(1)-Y(0)) \cdot 1 \mid D=1, \text{Compliers}] \cdot P(\text{Compliers} \mid D=1) \\
-& + (-1) \cdot \underset{\textstyle=0}{\underbrace{P(\text{Defiers} \mid D=1)}} \\
-& = E[ Y(1)-Y(0) \mid D=1, \text{Compliers}] \cdot P(\text{Compliers} \mid D=1) \\
-& = E[ Y(1)-Y(0) \mid D(0)=0, D(1)=1, D=1] \cdot P(D(0)=0, D(1)=1 \mid D=1) \\
+& E[ (Y(1)-Y(0))(D(1)-D(0))  \mid  Z=1] \\
+& \stackrel{\text{(LIE)}}{=} E[ (Y(1)-Y(0))(D(1)-D(0))  \mid  Z=1, \text{Always Takers}] \cdot P(\text{Always Takers}  \mid  Z=1) \\
+& + E[ (Y(1)-Y(0))(D(1)-D(0))  \mid  Z=1, \text{Never Takers}] \cdot P(\text{Never Takers}  \mid  Z=1) \\
+& + E[ (Y(1)-Y(0))(D(1)-D(0))  \mid  Z=1, \text{Compliers}] \cdot P(\text{Compliers}  \mid  Z=1) \\
+& + E[ (Y(1)-Y(0))(D(1)-D(0))  \mid  Z=1, \text{Defiers}] \cdot P(\text{Defiers}  \mid  Z=1) \\
+& \stackrel{\text{(A4)}}{=} 0 \cdot P(\text{Always Takers}  \mid  Z=1) \\
+& + 0 \cdot P(\text{Never Takers}  \mid  Z=1) \\
+& + E[ (Y(1)-Y(0)) \cdot 1  \mid  Z=1, \text{Compliers}] \cdot P(\text{Compliers}  \mid  Z=1) \\
+& + (-1) \cdot \underset{\textstyle=0}{\underbrace{P(\text{Defiers}  \mid  Z=1)}} \\
+& = E[ Y(1)-Y(0)  \mid  Z=1, \text{Compliers}] \cdot P(\text{Compliers}  \mid  Z=1) \\
 \end{aligned}
 $$
 
 We have shown the equivalence of:
 
 $$
-E[ Y(1,D(1)) - Y(0,D(0)) \mid D=1] = E[ Y(1)-Y(0) \mid D(0)=0, D(1)=1, D=1] P(D(0)=0, D(1)=1 \mid D=1)
+E[ Y(1,D(1)) - Y(0,D(0))  \mid  Z=1] = E[ Y(1)-Y(0)  \mid  D(0)=0, D(1)=1, Z=1] \cdot P(D(0)=0, D(1)=1  \mid  Z=1)
 $$
 
 Now we can rearrange this to express $\tau_{LATT}$:
 
 $$
-E[ Y(1)-Y(0) \mid D(0)=0, D(1)=1, D=1] = \frac{E[ Y(1,D(1)) - Y(0,D(0)) \mid D=1]}{P(D(0)=0, D(1)=1 \mid D=1)}
+E[ Y(1)-Y(0)  \mid  D(0)=0, D(1)=1, Z=1] = \frac{E[ Y(1,D(1)) - Y(0,D(0))  \mid  Z=1]}{P(D(0)=0, D(1)=1  \mid  Z=1)}
 $$
 
-Now we show that the denominator can be written as $E[D(1) - D(0) \mid D=1]$:
+Now we show that the denominator can be written as $E[D(1) - D(0)  \mid  Z=1]$:
 
 $$
 \begin{aligned}
-& E[D(1) - D(0) \mid D=1] \\
-& \stackrel{\text{(LIE)}}{=} E[D(1) - D(0) \mid D=1, \text{Always Takers}] \cdot P(\text{Always Takers} \mid D=1) \\
-& + E[D(1) - D(0) \mid D=1, \text{Never Takers}] \cdot  \underset{\textstyle=0}{\underbrace{P(\text{Never Takers} \mid D=1)}} \\
-& + E[D(1) - D(0) \mid D=1, \text{Compliers}] \cdot P(\text{Compliers} \mid D=1) \\
-& + E[D(1) - D(0) \mid D=1, \text{Defiers}] \cdot P(\text{Defiers} \mid D=1) \\
-& \stackrel{\text{(A4)}}{=} 0 \cdot P(\text{Always Takers} \mid D=1) \\
-& + 0 \cdot P(\text{Never Takers} \mid D=1) \\
-& + 1 \cdot P(\text{Compliers} \mid D=1) \\
-& + (-1) \cdot \underset{\textstyle=0}{\underbrace{P(\text{Defiers} \mid D=1)}} \\
-& = P(\text{Compliers} \mid D=1) \\
-& = P(D(0)=0, D(1)=1 \mid D=1) \\
+& E[D(1) - D(0)  \mid  Z=1] \\
+& \stackrel{\text{(LIE)}}{=} E[D(1) - D(0)  \mid  Z=1, \text{Always Takers}] \cdot P(\text{Always Takers}  \mid  Z=1) \\
+& + E[D(1) - D(0)  \mid  Z=1, \text{Never Takers}] \cdot P(\text{Never Takers}  \mid  Z=1) \\
+& + E[D(1) - D(0)  \mid  Z=1, \text{Compliers}] \cdot P(\text{Compliers}  \mid  Z=1) \\
+& + E[D(1) - D(0)  \mid  Z=1, \text{Defiers}] \cdot P(\text{Defiers}  \mid  Z=1) \\
+& \stackrel{\text{(A4)}}{=} 0 \cdot P(\text{Always Takers}  \mid  Z=1) \\
+& + 0 \cdot P(\text{Never Takers}  \mid  Z=1) \\
+& + 1 \cdot P(\text{Compliers}  \mid  Z=1) \\
+& + (-1) \cdot \underset{\textstyle=0}{\underbrace{P(\text{Defiers}  \mid  Z=1)}} \\
+& = P(\text{Compliers}  \mid  Z=1) \\
 \end{aligned}
 $$
 
 Plugging this back into our previous equation we get:
 
 $$
-E[ Y(1)-Y(0) \mid D(0)=0, D(1)=1, D=1] = \frac{E[ Y(1,D(1)) - Y(0,D(0)) \mid D=1]}{E[D(1) - D(0) \mid D=1]} \quad \blacksquare
+E[ Y(1)-Y(0)  \mid  D(0)=0, D(1)=1, Z=1] = \frac{E[ Y(1,D(1)) - Y(0,D(0))  \mid  Z=1]}{E[D(1) - D(0)  \mid  Z=1]}
 $$
-Which we wanted to show.
+
+This matches the definition of $\tau_{LATT}$:
+
+$$\tau_{LATT} = E[ Y(1)-Y(0)  \mid  D(0)=0, D(1)=1, D=1]$$
+
+The condition $D(0)=0, D(1)=1$ defines Compliers. For Compliers, $D=1$ is equivalent to $Z=1$, for Compliers $D(1)=1$ and $D(0)=0$.
+
+Therefore, conditioning on $\{D=1, \text{Compliers}\}$ is identical to conditioning on $\{Z=1, \text{Compliers}\}$.
+
+Thus:
+
+$$\tau_{LATT} = E[ Y(1)-Y(0)  \mid  \text{Compliers}, D=1] = E[ Y(1)-Y(0)  \mid  \text{Compliers}, Z=1] =  \frac{E[ Y(1,D(1)) - Y(0,D(0))  \mid  Z=1]}{E[D(1) - D(0)  \mid  Z=1]}\quad \blacksquare$$ Which we wanted to show.
 
 We will now use this result to show identification of $\tau_{LATT}$ under our IV assumptions $(A1)-(A5)$.
 
@@ -129,62 +199,64 @@ Starting with the numerator:
 
 We will proceed tho show that the numerator is identified by following AIPW structure, which we can split in regression and correction part:
 
-$$\frac{1}{P(D=1)} E \left[ Z Y - \left( \underset{\text{Regression Part}}{\underbrace{P(Z=1|X) E[Y|X, Z=0]}} + \underset{\text{Correction Part}}{\underbrace{\frac{P(Z=1|X)(1-Z)(Y - E[Y|X, Z=0])}{1 - P(Z=1|X)}}} \right) \right]$$
-
+$$\frac{1}{P(Z=1)} E \left[ Z Y - \left( \underset{\text{Regression Part}}{\underbrace{P(Z=1 \mid X) E[Y \mid X, Z=0]}} + \underset{\text{Correction Part}}{\underbrace{\frac{P(Z=1 \mid X)(1-Z)(Y - E[Y \mid X, Z=0])}{1 - P(Z=1 \mid X)}}} \right) \right]$$
 
 We start by basic rewriting.
 
 We have already shown that we can use the exclusion restriction $(A2)$ to rewrite the numerator as:
 
 $$
-E[ Y(1,D(1)) - Y(0,D(0)) \mid D=1] = E[ Y(D(1)) - Y(D(0)) \mid D=1]
+E[ Y(1,D(1)) - Y(0,D(0))  \mid  Z=1] = E[ Y(D(1)) - Y(D(0))  \mid  Z=1]
 $$
 
 By the definition of conditional expectation we can write this as:
 
 $$
-E[ Y(D(1)) - Y(D(0)) \mid D=1 ] = \frac{E[ (Y(D(1)) - Y(D(0))) \cdot D ]}{P(D=1)}
+E[ Y(D(1)) - Y(D(0))  \mid  Z=1 ] = \frac{E[ (Y(D(1)) - Y(D(0))) \cdot Z ]}{P(Z=1)}
 $$
 
 We can again identify 4 types:
 
-1. Always Takers: $D(1)=1, D(0)=1 \implies Y(D(1)) - Y(D(0)) = 0$
-2. Never Takers: $D(1)=0, D(0)=0 \implies Y(D(1)) - Y(D(0)) = 0$
-3. Compliers: $D(1)=1, D(0)=0 \implies Y(D(1)) - Y(D(0)) = Y(1) - Y(0)$
-4. Defiers: Ruled out by Monotonicity $(A4)$
+**1. Always Takers:** $D(1)=1, D(0)=1 \implies Y(D(1)) - Y(D(0)) = 0$
 
-So the term $E[ (Y(D(1)) - Y(D(0))) \cdot D ]$ is non-zero only for Compliers. We know by definition that for Compliers $D=Z$. Therefore we can replace $D$ in the numerator expectation:
+**2. Never Takers:** $D(1)=0, D(0)=0 \implies Y(D(1)) - Y(D(0)) = 0$
 
-$$E[ (Y(D(1)) - Y(D(0))) \cdot D ] = E[ (Y(D(1)) - Y(D(0))) \cdot Z ]$$
+**3. Compliers:** $D(1)=1, D(0)=0 \implies Y(D(1)) - Y(D(0)) = Y(1) - Y(0)$
+
+**4. Defiers:** Ruled out by Monotonicity $(A4)$
+
+The term $Y(D(1)) - Y(D(0))$ is zero for Always Takers and Never Takers. It is only non-zero for Compliers ($Y(1)-Y(0)$).Therefore:
+
+$$E[ (Y(D(1)) - Y(D(0))) \cdot Z ] = E[ (Y(1) - Y(0)) \cdot Z  \mid  \text{Compliers}] \cdot P(\text{Compliers})$$
 
 Now let's focus on the regression part:
 
-$$E[ P(Z=1|X) E[Y|X, Z=0] ]$$
+$$E[ P(Z=1 \mid X) E[Y \mid X, Z=0] ]$$
 
-Using Consistency and ($A1$ - $Z \perp Y(D(0)) \mid X$) we can write:
+Using Consistency and ($A1$ - $Z \perp Y(D(0))  \mid  X$) we can write:
 
 $$
 \begin{aligned}
-& E[ P(Z=1|X) E[Y|X, Z=0] ] \\
-& \stackrel{\text{(A5)}}{=} E[ P(Z=1|X) E[Y(D(0))|X,Z=0] \\
-& \stackrel{\text{(A1)}}{=} E[ P(Z=1|X) E[YD(0)|X] ] \\
-& = E[ E[Z|X] E[Y(D(0))|X] ] \\
-& = E[ E[Z  Y(D(0))|X] ] \\
+& E[ P(Z=1 \mid X) E[Y \mid X, Z=0] ] \\
+& \stackrel{\text{(A5)}}{=} E[ P(Z=1 \mid X) E[Y(D(0)) \mid X,Z=0] \\
+& \stackrel{\text{(A1)}}{=} E[ P(Z=1 \mid X) E[YD(0) \mid X] ] \\
+& = E[ E[Z \mid X] E[Y(D(0)) \mid X] ] \\
+& = E[ E[Z  Y(D(0)) \mid X] ] \\
 & = E[ Z Y(D(0)) ]
 \end{aligned}
 $$
 
 Now let's look at the correction part:
 
-$$E \left[ \frac{P(Z=1|X)}{1 - P(Z=1|X)} (1-Z) (Y - E[Y|X, Z=0]) \right]$$
+$$E \left[ \frac{P(Z=1 \mid X)}{1 - P(Z=1 \mid X)} (1-Z) (Y - E[Y \mid X, Z=0]) \right]$$
 
-By $(A1)$ Random Assignment and $(A2)$ Exclusion and $(A5)$ Consistency: 
+By $(A1)$ Random Assignment and $(A2)$ Exclusion and $(A5)$ Consistency:
 
 $$
 \begin{aligned}
-& E[Y|X, Z=0] \\
-& \stackrel{\text{(A5&A2)}}{=} E[Y(D(0))|X, Z=0] \\
-& \stackrel{\text{(A1)}}{=} E[Y(D(0))|X] \\
+& E[Y \mid X, Z=0] \\
+& \stackrel{\text{(A5&A2)}}{=} E[Y(D(0)) \mid X, Z=0] \\
+& \stackrel{\text{(A1)}}{=} E[Y(D(0)) \mid X] \\
 \end{aligned}
 $$
 
@@ -192,40 +264,42 @@ Let's plug this in the correction part and apply the LIE:
 
 $$
 \begin{aligned}
-& E \left[ \frac{P(Z=1|X)}{1 - P(Z=1|X)} (1-Z) (Y - E[Y|X, Z=0]) \right] \\
-& = E \left[ \frac{P(Z=1|X)}{1 - P(Z=1|X)} (1-Z) (Y - E[Y(D(0))|X]) \right] \\
-& \stackrel{\text{(LIE)}}{=} E \left[ E \left[ \frac{P(Z=1|X)}{1 - P(Z=1|X)} (1-Z) (Y - E[Y(D(0))|X]) \mid X \right] \right] \\
-& = E \left[ \frac{P(Z=1|X)}{1 - P(Z=1|X)} E \left[ (1-Z) (Y - E[Y(D(0))|X]) \mid X \right] \right] \\
+& E \left[ \frac{P(Z=1 \mid X)}{1 - P(Z=1 \mid X)} (1-Z) (Y - E[Y \mid X, Z=0]) \right] \\
+& = E \left[ \frac{P(Z=1 \mid X)}{1 - P(Z=1 \mid X)} (1-Z) (Y - E[Y(D(0)) \mid X]) \right] \\
+& \stackrel{\text{(LIE)}}{=} E \left[ E \left[ \frac{P(Z=1 \mid X)}{1 - P(Z=1 \mid X)} (1-Z) (Y - E[Y(D(0)) \mid X])  \mid  X \right] \right] \\
+& = E \left[ \frac{P(Z=1 \mid X)}{1 - P(Z=1 \mid X)} E \left[ (1-Z) (Y - E[Y(D(0)) \mid X])  \mid  X \right] \right] \\
 \end{aligned}
-$$
+$$ 
+
 Focus on the inner part and apply the LIE again:
 
 $$
 \begin{aligned}
-& E \left[ (1-Z) (Y - E[Y(D(0))|X]) \mid X \right] \\
-& \stackrel{\text{(LIE)}}{=} \ E[(1-1)(Y-E[Y(D(0))|X]) \mid X, Z=1] \cdot P(Z=1 \mid X) \\
-& + E[(1-0)(Y-E[Y(D(0))|X]) \mid X, Z=0] \cdot P(Z=0 \mid X) \\
-& =  E[(Y-E[Y(D(0))|X]) \mid X, Z=0] \cdot P(Z=0 \mid X) \\
-& = (1 - P(Z=1|X)) \cdot (E[Y \mid X, Z=0] - E[Y(D(0))|X]) \\
-& \stackrel{\text{(A1&A5&A2)}}{=} (1 - P(Z=1|X)) \cdot ( E[Y(D(0)) \mid X] - E[Y(D(0))|X]) \\
+& E \left[ (1-Z) (Y - E[Y(D(0)) \mid X])  \mid  X \right] \\
+& \stackrel{\text{(LIE)}}{=} \ E[(1-1)(Y-E[Y(D(0)) \mid X])  \mid  X, Z=1] \cdot P(Z=1  \mid  X) \\
+& + E[(1-0)(Y-E[Y(D(0)) \mid X])  \mid  X, Z=0] \cdot P(Z=0  \mid  X) \\
+& =  E[(Y-E[Y(D(0)) \mid X])  \mid  X, Z=0] \cdot P(Z=0  \mid  X) \\
+& = (1 - P(Z=1 \mid X)) \cdot (E[Y  \mid  X, Z=0] - E[Y(D(0)) \mid X]) \\
+& \stackrel{\text{(A1&A5&A2)}}{=} (1 - P(Z=1 \mid X)) \cdot ( E[Y(D(0))  \mid  X] - E[Y(D(0)) \mid X]) \\
 & = 0 \\
 \end{aligned}
 $$
+
 Now we look at the full AIPW representation of the numerator again, which we wrote as:
 
 $$E \left[ Z Y - \left( \text{Regression Part} + \text{Correction Part} \right) \right]$$
 
-We have shown that the regression part is equal to $E[ Z Y(D(0)) ]$ and the correction part is equal to $0$. Additionally since $Z=1$ under Consistency $D=D(1)$ and  $Y = Y(D(1))$. Then the first part becomes:
+We have shown that the regression part is equal to $E[ Z Y(D(0)) ]$ and the correction part is equal to $0$. Additionally since $Z=1$ under Consistency $D=D(1)$ and $Y = Y(D(1))$. Then the first part becomes:
 
 $$E[ZY] = E[Z Y(D(1))]$$
 
-Putting everything together we and remembering our first result when rewriting $\frac{E[ Z (Y(D(1)) - Y(D(0))) ]}{P(D=1)} = E[ Y(D(1)) - Y(D(0)) \mid D=1 ]$ we get:
+Putting everything together we and remembering our first result when rewriting $\frac{E[ Z (Y(D(1)) - Y(D(0))) ]}{P(D=1)} = E[ Y(D(1)) - Y(D(0))  \mid  Z=1 ]$ we get:
 
 $$
 \begin{aligned}
-& \frac{1}{P(D=1)} E \left[ Z Y - \left( \text{Regression Part} + \text{Correction Part} \right) \right] \\
-& = \frac{1}{P(D=1)} E[Z Y(D(1))] - E[ Z Y(D(0)) ] \\
-& = \frac{E[ Z (Y(D(1)) - Y(D(0))) ]}{P(D=1)} \\
+& \frac{1}{P(Z=1)} E \left[ Z Y - \left( \text{Regression Part} + \text{Correction Part} \right) \right] \\
+& = \frac{1}{P(Z=1)} E[Z Y(D(1))] - E[ Z Y(D(0)) ] \\
+& = \frac{E[ Z (Y(D(1)) - Y(D(0))) ]}{P(Z=1)} \\
 \end{aligned}
 $$
 
@@ -233,30 +307,31 @@ We now verify that this expression matches our target by using the LIE and condi
 
 $$
 \begin{aligned}
-& \frac{E[ Z (Y(D(1)) - Y(D(0))) ]}{P(D=1)} \\
-& \stackrel{\text{(LIE)}}{=} \frac{1}{P(D=1)} \Big(  \underset{\textstyle{= 0}}{\underbrace{E[ Z(Y(D(1))-Y(D(0))) \mid \text{Always Takers}]}} \cdot P(\text{Always Takers}) \\
-& \quad +  \underset{\textstyle{= 0}}{\underbrace{E[ Z(Y(D(1))-Y(D(0))) \mid \text{Never Takers}]}} \cdot P(\text{Never Takers}) \\
-& \quad + E[ Z(Y(D(1))-Y(D(0))) \mid \text{Compliers}] \cdot P(\text{Compliers}) \\
-& \quad + E[ Z(Y(D(1))-Y(D(0))) \mid \text{Defiers}] \cdot  \underset{\textstyle{= 0 \quad (A4)}}{\underbrace{P(\text{Defiers}}})\Big) \\
-& = \frac{E[ Z(Y(1)-Y(0)) \mid \text{Compliers}] \cdot P(\text{Compliers})}{P(D=1)} \\
+& \frac{E[ Z (Y(D(1)) - Y(D(0))) ]}{P(Z=1)} \\
+& \stackrel{\text{(LIE)}}{=} \frac{1}{P(Z=1)} \Big(  \underset{\textstyle{= 0}}{\underbrace{E[ Z(Y(D(1))-Y(D(0)))  \mid  \text{Always Takers}]}} \cdot P(\text{Always Takers}) \\
+& \quad +  \underset{\textstyle{= 0}}{\underbrace{E[ Z(Y(D(1))-Y(D(0)))  \mid  \text{Never Takers}]}} \cdot P(\text{Never Takers}) \\
+& \quad + E[ Z(Y(D(1))-Y(D(0)))  \mid  \text{Compliers}] \cdot P(\text{Compliers}) \\
+& \quad + E[ Z(Y(D(1))-Y(D(0)))  \mid  \text{Defiers}] \cdot  \underset{\textstyle{= 0 \quad (A4)}}{\underbrace{P(\text{Defiers}}})\Big) \\
+& = \frac{E[ Z(Y(1)-Y(0))  \mid  \text{Compliers}] \cdot P(\text{Compliers})}{P(Z=1)} \\
 \end{aligned}
 $$
 
-Do the same for the target expression, here we only need to condition on Always Takers and Compliers since Never Takers are ruled out by conditioning on D=1 and Defiers are ruled out by monotonicity $(A4)$. At the end we use the fact that for Compliers $D=Z$ by definition:
+Do the same for the target expression, here we only need to condition on Always Takers and Compliers and Never Takers since Defiers are ruled out by monotonicity $(A4)$.
 
 $$
 \begin{aligned}
-& \frac{E[ D(Y(D(1)) - Y(D(0))) ]}{P(D=1)} \\
-& \stackrel{\text{(LIE)}}{=} \frac{1}{P(D=1)} \Big( \underset{\textstyle{= 0}}{\underbrace{E[ D(Y(D(1))-Y(D(0))) \mid \text{Always Takers}]}} \cdot P(\text{Always Takers}) \\
-& \quad + E[ D(Y(D(1))-Y(D(0))) \mid \text{Compliers}] \cdot P(\text{Compliers}) \Big) \\
-& = \frac{1}{P(D=1)} \Big( 0 + E[ Z(Y(1)-Y(0)) \mid \text{Compliers}] \cdot P(\text{Compliers}) \Big) \\
-& = \frac{E[ Z(Y(1)-Y(0)) \mid \text{Compliers}] \cdot P(\text{Compliers})}{P(D=1)} \\
+& \frac{E[ D(Y(D(1)) - Y(D(0))) ]}{P(Z=1)} \\
+& \stackrel{\text{(LIE)}}{=} \frac{1}{P(Z=1)} \Big( \underset{\textstyle{= 0}}{\underbrace{E[ D(Y(D(1))-Y(D(0)))  \mid  \text{Always Takers}]}} \cdot P(\text{Always Takers}) \\
+& \quad + E[ D(Y(D(1))-Y(D(0)))  \mid  \text{Compliers}] \cdot P(\text{Compliers}) \Big) \\
+& \quad + \underset{\textstyle{= 0}}{\underbrace{E[ D(Y(D(1))-Y(D(0)))  \mid  \text{Never Takers}]}} \cdot P(\text{Never Takers}) \\
+& = \frac{1}{P(Z=1)} \Big( 0 + 0 + E[ Z(Y(1)-Y(0))  \mid  \text{Compliers}] \cdot P(\text{Compliers}) \Big) \\
+& = \frac{E[ Z(Y(1)-Y(0))  \mid  \text{Compliers}] \cdot P(\text{Compliers})}{P(Z=1)} \\
 \end{aligned}
 $$
 
 Since the two expressions are equal, we have shown that:
 
-$$\frac{1}{P(D=1)} E \left[ Z Y - \left( P(Z=1|X) E[Y|X, Z=0] + \frac{P(Z=1|X)(1-Z)(Y - E[Y|X, Z=0])}{1 - P(Z=1|X)} \right) \right] = E[ Y(1,D(1)) - Y(0,D(0)) \mid D=1]$$
+$$\frac{1}{P(Z=1)} E \left[ Z Y - \left( P(Z=1 \mid X) E[Y \mid X, Z=0] + \frac{P(Z=1 \mid X)(1-Z)(Y - E[Y \mid X, Z=0])}{1 - P(Z=1 \mid X)} \right) \right] = E[ Y(1,D(1)) - Y(0,D(0))  \mid  Z=1]$$
 
 Therefore we have shown that the numerator is identified by the AIPW structure above.
 
@@ -264,114 +339,114 @@ Let's do the same for the denominator:
 
 We will proceed to show that the denominator is identified by the same AIPW structure:
 
-$$\frac{1}{P(D=1)} E \left[ Z D - \left( \underset{\text{Regression Part}}{\underbrace{P(Z=1|X) E[D|X, Z=0]}} + \underset{\text{Correction Part}}{\underbrace{\frac{P(Z=1|X)(1-Z)(D - E[D|X, Z=0])}{1 - P(Z=1|X)}}} \right) \right]$$
+$$\frac{1}{P(Z=1)} E \left[ Z D - \left( \underset{\text{Regression Part}}{\underbrace{P(Z=1 \mid X) E[D \mid X, Z=0]}} + \underset{\text{Correction Part}}{\underbrace{\frac{P(Z=1 \mid X)(1-Z)(D - E[D \mid X, Z=0])}{1 - P(Z=1 \mid X)}}} \right) \right]$$
 
 Let's rewrite again:
 
-$$E[ D(1) - D(0) \mid D=1]$$
+$$E[ D(1) - D(0)  \mid  Z=1]$$
 
-By the definition of conditional expectation we can write this as:
-$$E[ D(1) - D(0) \mid D=1 ] = \frac{E[ (D(1) - D(0)) \cdot D ]}{P(D=1)}$$
-We can again identify 4 types:
+By the definition of conditional expectation we can write this as: $$E[ D(1) - D(0)  \mid  Z=1 ] = \frac{E[ (D(1) - D(0)) \cdot Z ]}{P(Z=1)}$$ We can again identify 4 types:
 
-1. Always Takers: $D(1)=1, D(0)=1 \implies D(1) - D(0) = 0$
-2. Never Takers: $D(1)=0, D(0)=0 \implies D(1) - D(0) = 0$
-3.Compliers: $D(1)=1, D(0)=0 \implies D(1) - D(0) = 1$
-4.Defiers: Ruled out by Monotonicity $(A4)$
+**1. Always Takers:** $D(1)=1, D(0)=1 \implies D(1) - D(0) = 0$ 
 
-So the term $E[ (D(1) - D(0)) \cdot D ]$ is non-zero only for Compliers. We also already know from above that for Compliers $D=Z$. Therefore we can  replace $D$ (the multiplier) in the denominator expectation:
+**2. Never Takers:** $D(1)=0, D(0)=0 \implies D(1) - D(0) = 0$ 
 
-$$E[ (D(1) - D(0)) \cdot D ] = E[ (D(1) - D(0)) \cdot Z ]$$
-Now let's focus on the regression part:
+**3. 3.Compliers:** $D(1)=1, D(0)=0 \implies D(1) - D(0) = 1$
 
-$$E[ P(Z=1|X) E[D|X, Z=0] ]$$
+**4. 4.Defiers:** Ruled out by Monotonicity $(A4)$
 
-Using Consistency and ($A1$ - $Z \perp D(0) \mid X$) we can write:
+So the term $E[ (D(1) - D(0)) \cdot Z ]$ is non-zero only for Compliers:
+
+$$E[ (D(1) - D(0)) \cdot Z ] = E[ 1 \cdot Z ] \cdot P(Complier) = E[Z] \cdot P(Complier)$$ Now let's focus on the regression part:
+
+$$E[ P(Z=1 \mid X) E[D \mid X, Z=0] ]$$
+
+Using Consistency and ($A1$ - $Z \perp D(0)  \mid  X$) we can write:
 
 $$\begin{aligned}
-& E[ P(Z=1|X) E[D|X, Z=0] ] \\
-& \stackrel{\text{(A5)}}{=} E[ P(Z=1|X) E[D(0)|X,Z=0] \\
-& \stackrel{\text{(A1)}}{=} E[ P(Z=1|X) E[D(0)|X] ] \\
-& = E[ E[Z|X] E[D(0)|X] ] \\
-& = E[ E[Z  D(0)|X] ] \\
+& E[ P(Z=1 \mid X) E[D \mid X, Z=0] ] \\
+& \stackrel{\text{(A5)}}{=} E[ P(Z=1 \mid X) E[D(0) \mid X,Z=0] \\
+& \stackrel{\text{(A1)}}{=} E[ P(Z=1 \mid X) E[D(0) \mid X] ] \\
+& = E[ E[Z \mid X] E[D(0) \mid X] ] \\
+& = E[ E[Z  D(0) \mid X] ] \\
 & = E[ Z D(0) ]
 \end{aligned}$$
 
-Now let's look at the correction part:
-$$E \left[ \frac{P(Z=1|X)}{1 - P(Z=1|X)} (1-Z) (D - E[D|X, Z=0]) \right]$$
+Now let's look at the correction part: $$E \left[ \frac{P(Z=1 \mid X)}{1 - P(Z=1 \mid X)} (1-Z) (D - E[D \mid X, Z=0]) \right]$$
 
 By $(A1)$ Random Assignment and $(A5)$ Consistency:
 
 $$\begin{aligned}
-& E[D|X, Z=0] \\
-& \stackrel{\text{(A5)}}{=} E[D(0)|X, Z=0] \\
-& \stackrel{\text{(A1)}}{=} E[D(0)|X] \\
+& E[D \mid X, Z=0] \\
+& \stackrel{\text{(A5)}}{=} E[D(0) \mid X, Z=0] \\
+& \stackrel{\text{(A1)}}{=} E[D(0) \mid X] \\
 \end{aligned}$$
 
 Let's plug this in the correction part and apply the LIE:
 
 $$\begin{aligned}
-& E \left[ \frac{P(Z=1|X)}{1 - P(Z=1|X)} (1-Z) (D - E[D|X, Z=0]) \right] \\
-& = E \left[ \frac{P(Z=1|X)}{1 - P(Z=1|X)} (1-Z) (D - E[D(0)|X]) \right] \\
-& \stackrel{\text{(LIE)}}{=} E \left[ E \left[ \frac{P(Z=1|X)}{1 - P(Z=1|X)} (1-Z) (D - E[D(0)|X]) \mid X \right] \right] \\
-& = E \left[ \frac{P(Z=1|X)}{1 - P(Z=1|X)} E \left[ (1-Z) (D - E[D(0)|X]) \mid X \right] \right] \\
+& E \left[ \frac{P(Z=1 \mid X)}{1 - P(Z=1 \mid X)} (1-Z) (D - E[D \mid X, Z=0]) \right] \\
+& = E \left[ \frac{P(Z=1 \mid X)}{1 - P(Z=1 \mid X)} (1-Z) (D - E[D(0) \mid X]) \right] \\
+& \stackrel{\text{(LIE)}}{=} E \left[ E \left[ \frac{P(Z=1 \mid X)}{1 - P(Z=1 \mid X)} (1-Z) (D - E[D(0) \mid X])  \mid  X \right] \right] \\
+& = E \left[ \frac{P(Z=1 \mid X)}{1 - P(Z=1 \mid X)} E \left[ (1-Z) (D - E[D(0) \mid X])  \mid  X \right] \right] \\
 \end{aligned}$$
 
 Focus on the inner part and apply the LIE again:
 
 $$\begin{aligned}
-& E \left[ (1-Z) (D - E[D(0)|X]) \mid X \right] \\
-& \stackrel{\text{(LIE)}}{=} \ E[(1-1)(D-E[D(0)|X]) \mid X, Z=1] \cdot P(Z=1 \mid X) \\
-& + E[(1-0)(D-E[D(0)|X]) \mid X, Z=0] \cdot P(Z=0 \mid X) \\
-& =  E[(D-E[D(0)|X]) \mid X, Z=0] \cdot P(Z=0 \mid X) \\
-& = (1 - P(Z=1|X)) \cdot (E[D \mid X, Z=0] - E[D(0)|X]) \\
-& \stackrel{\text{(A1&A5)}}{=} (1 - P(Z=1|X)) \cdot ( E[D(0) \mid X] - E[D(0)|X]) \\
+& E \left[ (1-Z) (D - E[D(0) \mid X])  \mid  X \right] \\
+& \stackrel{\text{(LIE)}}{=} \ E[(1-1)(D-E[D(0) \mid X])  \mid  X, Z=1] \cdot P(Z=1  \mid  X) \\
+& + E[(1-0)(D-E[D(0) \mid X])  \mid  X, Z=0] \cdot P(Z=0  \mid  X) \\
+& =  E[(D-E[D(0) \mid X])  \mid  X, Z=0] \cdot P(Z=0  \mid  X) \\
+& = (1 - P(Z=1 \mid X)) \cdot (E[D  \mid  X, Z=0] - E[D(0) \mid X]) \\
+& \stackrel{\text{(A1&A5)}}{=} (1 - P(Z=1 \mid X)) \cdot ( E[D(0)  \mid  X] - E[D(0) \mid X]) \\
 & = 0 \\
 \end{aligned}$$
 
 Now we look at the full AIPW representation of the denominator again, which we wrote as:
 
-$$E \left[ Z D - \left( \text{Regression Part} + \text{Correction Part} \right) \right]$$
-We have shown that the regression part is equal to $E[ Z D(0) ]$ and the correction part is equal to $0$.
+$$E \left[ Z D - \left( \text{Regression Part} + \text{Correction Part} \right) \right]$$ We have shown that the regression part is equal to $E[ Z D(0) ]$ and the correction part is equal to $0$.
 
-Additionally since $Z=1$ under Consistency $D=D(1)$. 
+Additionally since $Z=1$ under Consistency $D=D(1)$.
 
 Then the first part becomes:
 
 $$E[ZD] = E[Z D(1)]$$
 
-Putting everything together we and remembering our first result when rewriting $\frac{E[ Z (D(1) - D(0)) ]}{P(D=1)} = E[ D(1) - D(0) \mid D=1 ]$ we get:
+Putting everything together we and remembering our first result when rewriting $\frac{E[ Z (D(1) - D(0)) ]}{P(Z=1)} = E[ D(1) - D(0)  \mid  Z=1 ]$ we get:
 
 $$\begin{aligned}
-& \frac{1}{P(D=1)} E \left[ Z D - \left( \text{Regression Part} + \text{Correction Part} \right) \right] \\
-& = \frac{1}{P(D=1)} E[Z D(1)] - E[ Z D(0) ] \\
-& = \frac{E[ Z (D(1) - D(0)) ]}{P(D=1)} \\
+& \frac{1}{P(Z=1)} E \left[ Z D - \left( \text{Regression Part} + \text{Correction Part} \right) \right] \\
+& = \frac{1}{P(Z=1)} E[Z D(1)] - E[ Z D(0) ] \\
+& = \frac{E[ Z (D(1) - D(0)) ]}{P(Z=1)} \\
 \end{aligned}$$
 
 We now verify that this expression matches our target by using the LIE and conditioning on compliance types:
 
 $$\begin{aligned}
-& \frac{E[ Z (D(1) - D(0)) ]}{P(D=1)} \\
-& \stackrel{\text{(LIE)}}{=} \frac{1}{P(D=1)} \Big( \underset{\textstyle{= 0}}{\underbrace{E[ Z(D(1)-D(0)) \mid \text{Always Takers}]}} \cdot P(\text{Always Takers}) \\
-& \quad + \underset{\textstyle{= 0}}{\underbrace{E[ Z(D(1)-D(0)) \mid \text{Never Takers}]}} \cdot P(\text{Never Takers}) \\
-& \quad + E[ Z(D(1)-D(0)) \mid \text{Compliers}] \cdot P(\text{Compliers}) \\
-& \quad + E[ Z(D(1)-D(0)) \mid \text{Defiers}] \cdot \underset{\textstyle{= 0 \quad (A4)}}{\underbrace{P(\text{Defiers}}})\Big) \\
-& = \frac{E[ Z(1-0) \mid \text{Compliers}] \cdot P(\text{Compliers})}{P(D=1)} \\
+& \frac{E[ Z (D(1) - D(0)) ]}{P(Z=1)} \\
+& \stackrel{\text{(LIE)}}{=} \frac{1}{P(Z=1)} \Big( \underset{\textstyle{= 0}}{\underbrace{E[ Z(D(1)-D(0))  \mid  \text{Always Takers}]}} \cdot P(\text{Always Takers}) \\
+& \quad + \underset{\textstyle{= 0}}{\underbrace{E[ Z(D(1)-D(0))  \mid  \text{Never Takers}]}} \cdot P(\text{Never Takers}) \\
+& \quad + E[ Z(D(1)-D(0))  \mid  \text{Compliers}] \cdot P(\text{Compliers}) \\
+& \quad + E[ Z(D(1)-D(0))  \mid  \text{Defiers}] \cdot \underset{\textstyle{= 0 \quad (A4)}}{\underbrace{P(\text{Defiers}}})\Big) \\
+& = \frac{E[ Z(1-0)  \mid  \text{Compliers}] \cdot P(\text{Compliers})}{P(Z=1)} \\
+& = \frac{E[ Z  \mid  \text{Compliers}] \cdot P(\text{Compliers})}{P(Z=1)}\\
 \end{aligned}$$
 
-Do the same for the target expression, here we only need to condition on Always Takers and Compliers since Never Takers are ruled out by conditioning on D=1 and Defiers are ruled out by monotonicity $(A4)$. At the end we use the fact that for Compliers $D=Z$ by definition:
+Do the same for the target expression, here we only need to condition on Always Takers, Compliers and Never Takers, since Defiers are ruled out by monotonicity $(A4)$.
 
 $$\begin{aligned}
-& \frac{E[ D(D(1) - D(0)) ]}{P(D=1)} \\
-& \stackrel{\text{(LIE)}}{=} \frac{1}{P(D=1)} \Big( \underset{\textstyle{= 0}}{\underbrace{E[ D(D(1)-D(0)) \mid \text{Always Takers}]}} \cdot P(\text{Always Takers}) \\
-& \quad + E[ D(D(1)-D(0)) \mid \text{Compliers}] \cdot P(\text{Compliers}) \Big) \\
-& = \frac{1}{P(D=1)} \Big( 0 + E[ Z(1-0) \mid \text{Compliers}] \cdot P(\text{Compliers}) \Big) \\
-& = \frac{E[ Z(1-0) \mid \text{Compliers}] \cdot P(\text{Compliers})}{P(D=1)} \\
+& \frac{E[ D(D(1) - D(0)) ]}{P(Z=1)} \\
+& \stackrel{\text{(LIE)}}{=} \frac{1}{P(Z=1)} \Big( \underset{\textstyle{= 0}}{\underbrace{E[ D(D(1)-D(0))  \mid  \text{Always Takers}]}} \cdot P(\text{Always Takers}) \\
+& \quad + E[ D(D(1)-D(0))  \mid  \text{Compliers}] \cdot P(\text{Compliers}) \Big) \\
+& \quad + \underset{\textstyle{= 0}}{\underbrace{E[ D(D(1)-D(0))  \mid  \text{Never Takers}]}} \cdot P(\text{Never Takers}) \\
+& = \frac{1}{P(Z=1)} \Big( 0 + E[ Z(1-0)  \mid  \text{Compliers}] \cdot P(\text{Compliers}) \Big) \\
+& = \frac{E[ Z(1-0)  \mid  \text{Compliers}] \cdot P(\text{Compliers})}{P(Z=1)} \\
 \end{aligned}$$
 
 Since the two expressions are equal, we have shown that:
 
-$$\frac{1}{P(D=1)} E \left[ Z D - \left( P(Z=1|X) E[D|X, Z=0] + \frac{P(Z=1|X)(1-Z)(D - E[D|X, Z=0])}{1 - P(Z=1|X)} \right) \right] = E[ D(1) - D(0) \mid D=1]$$
+$$\frac{1}{P(Z=1)} E \left[ Z D - \left( P(Z=1 \mid X) E[D \mid X, Z=0] + \frac{P(Z=1 \mid X)(1-Z)(D - E[D \mid X, Z=0])}{1 - P(Z=1 \mid X)} \right) \right] = E[ D(1) - D(0)  \mid  Z=1]$$
 
 We have successfully shown that both the numerator and denominator are identified by the AIPW-ATT structure under our IV assumptions (A1)-(A5).
 
@@ -379,156 +454,436 @@ We have therefore also shown that the LATT is identified as the ratio of the two
 
 In full:
 
-$$\tau_{LATT} = \frac{\frac{1}{P(D=1)} E \left[ Z Y - \left( P(Z=1|X) E[Y|X, Z=0] + \frac{P(Z=1|X)(1-Z)(Y - E[Y|X, Z=0])}{1 - P(Z=1|X)} \right) \right]}{\frac{1}{P(D=1)} E \left[ Z D - \left( P(Z=1|X) E[D|X, Z=0] + \frac{P(Z=1|X)(1-Z)(D - E[D|X, Z=0])}{1 - P(Z=1|X)} \right) \right]} \quad \blacksquare$$
+$$
+\begin{aligned}
+\tau_{LATT} &= \frac{\frac{1}{P(Z=1)} E \left[ Z Y - \left( P(Z=1 \mid X) E[Y \mid X, Z=0] + \frac{P(Z=1 \mid X)(1-Z)(Y - E[Y \mid X, Z=0])}{1 - P(Z=1 \mid X)} \right) \right]}{\frac{1}{P(Z=1)} E \left[ Z D - \left( P(Z=1 \mid X) E[D \mid X, Z=0] + \frac{P(Z=1 \mid X)(1-Z)(D - E[D \mid X, Z=0])}{1 - P(Z=1 \mid X)} \right) \right]} \\
+& = \frac{ E \left[ Z Y - \left( P(Z=1 \mid X) E[Y \mid X, Z=0] + \frac{P(Z=1 \mid X)(1-Z)(Y - E[Y \mid X, Z=0])}{1 - P(Z=1 \mid X)} \right) \right]}{ E \left[ Z D - \left( P(Z=1 \mid X) E[D \mid X, Z=0] + \frac{P(Z=1 \mid X)(1-Z)(D - E[D \mid X, Z=0])}{1 - P(Z=1 \mid X)} \right) \right]} \quad \blacksquare
+\end{aligned}
+$$
 
-Where the term $\frac{1}{P(D=1)}$ cancels but we will keep it for the influence function derivation.
+Where the term $\frac{1}{P(Z=1)}$ cancels.
 
+#### **LATU**
 
-### 2.3 Influence function derivation
+The identification of the LATU follows in an analogous manner. The only difference is that we condition on $Z=0$ instead of $Z=1$ throughout the derivation.
 
-#### LATT
+Here is the full proof for conpleteness:
+
+We start with the definition of LATU:
+
+$$\tau_{LATU} = E[ Y(1)-Y(0)  \mid  D(0)=0, D(1)=1, D=0]$$
+
+We start this proof with the numerator of the second term:
+
+$$\begin{aligned}
+& E[ Y(1,D(1)) - Y(0,D(0))  \mid  Z=0] \\
+& \stackrel{\text{(A2)}}{=} E[ Y(D(1)) - Y(D(0))  \mid  Z=0] \\
+& = E[ Y(1)D(1) + Y(0)(1-D(1)) - (Y(1)D(0) + Y(0)(1-D(0)))  \mid  Z=0] \\
+&= E[Y(1)D(1) + Y(0) - Y(0)D(1) - Y(1)D(0) - Y(0) + Y(0)D(0)  \mid  Z=0] \\
+& = E[ Y(1)(D(1)-D(0)) + Y(0)(D(0)-D(1))  \mid  Z=0] \\
+& = E[ (Y(1)-Y(0))(D(1)-D(0))  \mid  Z=0] \\
+\end{aligned}$$
+
+We can divide this again based on four different compliance types:
+
+**1. Always Takers:** $D(1)=1, D(0)=1 \implies D(1) - D(0) = 0$
+
+**2. Never Takers:** $D(1)=0, D(0)=0 \implies D(1) - D(0) = 0$
+
+**3. Compliers:** $D(1)=1, D(0)=0 \implies D(1) - D(0) = 1$
+
+**4. Defiers:** $D(1)=0, D(0)=1 \implies D(1) - D(0) = -1$
+
+Under our monotonicity assumption $(A4)$ we can rule out Defiers. Formally this implies that $P(D(1) - D(0) = -1 ) = P(Defiers) = P(Defiers  \mid  Z=0) = 0$.
+
+When we condition on $Z = 0$, Always Takers, Never Takers, and Compliers may be present. However, for Always Takers and Never Takers, the difference $D(1) - D(0)$ is exactly 0. Thus, these groups contribute nothing to the expectation, leaving only the Compliers.We can rewrite our previous equation using the law of iterated expectations and conditioning on the compliance types:
+
+$$\begin{aligned}
+& E[ (Y(1)-Y(0))(D(1)-D(0))  \mid  Z=0] \\
+& \stackrel{\text{(LIE)}}{=} E[ (Y(1)-Y(0))(D(1)-D(0))  \mid  Z=0, \text{Always Takers}] \cdot P(\text{Always Takers}  \mid  Z=0) \\
+& + E[ (Y(1)-Y(0))(D(1)-D(0))  \mid  Z=0, \text{Never Takers}] \cdot P(\text{Never Takers}  \mid  Z=0) \\
+& + E[ (Y(1)-Y(0))(D(1)-D(0))  \mid  Z=0, \text{Compliers}] \cdot P(\text{Compliers}  \mid  Z=0) \\
+& + E[ (Y(1)-Y(0))(D(1)-D(0))  \mid  Z=0, \text{Defiers}] \cdot P(\text{Defiers}  \mid  Z=0) \\
+& \stackrel{\text{(A4)}}{=} 0 \cdot P(\text{Always Takers}  \mid  Z=0) \\
+& + 0 \cdot P(\text{Never Takers}  \mid  Z=0) \\
+& + E[ (Y(1)-Y(0)) \cdot 1  \mid  Z=0, \text{Compliers}] \cdot P(\text{Compliers}  \mid  Z=0) \\
+& + (-1) \cdot \underset{\textstyle=0}{\underbrace{P(\text{Defiers}  \mid  Z=0)}} \\
+& = E[ Y(1)-Y(0)  \mid  Z=0, \text{Compliers}] \cdot P(\text{Compliers}  \mid  Z=0) \\
+\end{aligned}$$
+
+We have shown the equivalence of:
+
+$$E[ Y(1,D(1)) - Y(0,D(0))  \mid  Z=0] = E[ Y(1)-Y(0)  \mid  \text{Compliers}, Z=0] \cdot P(\text{Compliers}  \mid  Z=0)$$
+
+Now we show that the denominator can be written as $E[D(1) - D(0)  \mid  Z=0]$:
+
+$$\begin{aligned}
+& E[D(1) - D(0)  \mid  Z=0] \\
+& \stackrel{\text{(LIE)}}{=} E[D(1) - D(0)  \mid  Z=0, \text{Always Takers}] \cdot P(\text{Always Takers}  \mid  Z=0) \\
+& + E[D(1) - D(0)  \mid  Z=0, \text{Never Takers}] \cdot P(\text{Never Takers}  \mid  Z=0) \\
+& + E[D(1) - D(0)  \mid  Z=0, \text{Compliers}] \cdot P(\text{Compliers}  \mid  Z=0) \\
+& + E[D(1) - D(0)  \mid  Z=0, \text{Defiers}] \cdot P(\text{Defiers}  \mid  Z=0) \\
+& \stackrel{\text{(A4)}}{=} 0 \cdot P(\text{Always Takers}  \mid  Z=0) \\
+& + 0 \cdot P(\text{Never Takers}  \mid  Z=0) \\
+& + 1 \cdot P(\text{Compliers}  \mid  Z=0) \\
+& + (-1) \cdot \underset{\textstyle=0}{\underbrace{P(\text{Defiers}  \mid  Z=0)}} \\
+& = P(\text{Compliers}  \mid  Z=0) \\
+\end{aligned}$$
+
+Plugging this back into our ratio we get:
+
+$$\frac{E[ Y(1,D(1)) - Y(0,D(0))  \mid  Z=0]}{E[D(1) - D(0)  \mid  Z=0]} = \frac{E[ Y(1)-Y(0)  \mid  \text{Compliers}, Z=0] \cdot P(\text{Compliers}  \mid  Z=0)}{P(\text{Compliers}  \mid  Z=0)}$$
+
+This matches the definition of $\tau_{LATU}$:
+
+$$\tau_{LATU} = E[ Y(1)-Y(0)  \mid  \text{Compliers}, Z=0] \quad \blacksquare$$ Which we wanted to show.
+
+We will now use this result to show identification of $\tau_{LATU}$ under our IV assumptions $(A1)-(A5)$.
+
+Starting with the numerator:
+
+We will proceed to show that the numerator is identified by a symmetric AIPW structure. Since we target the untreated ($Z=0$), we treat the observed part as the "Control" outcome and the regression/correction part as the "Treated" counterfactual:
+
+$$\frac{1}{P(Z=0)} E \left[ \left( \underset{\text{Regression Part}}{\underbrace{P(Z=0 \mid X) E[Y \mid X, Z=1]}} + \underset{\text{Correction Part}}{\underbrace{\frac{P(Z=0 \mid X)Z(Y - E[Y \mid X, Z=1])}{P(Z=1 \mid X)}}} \right) - (1-Z) Y \right]$$
+
+We start by basic rewriting.We have already shown that we can use the exclusion restriction $(A2)$ to rewrite the numerator as:
+
+$$E[ Y(1,D(1)) - Y(0,D(0))  \mid  Z=0] = E[ Y(D(1)) - Y(D(0))  \mid  Z=0]$$
+
+By the definition of conditional expectation we can write this as:
+
+$$E[ Y(D(1)) - Y(D(0))  \mid  Z=0 ] = \frac{E[ (Y(D(1)) - Y(D(0))) \cdot (1-Z) ]}{P(Z=0)}$$
+
+We can again identify 4 types:
+
+**1. Always Takers:** $D(1)=1, D(0)=1 \implies Y(D(1)) - Y(D(0)) = 0$
+
+**2. Never Takers:** $D(1)=0, D(0)=0 \implies Y(D(1)) - Y(D(0)) = 0$
+
+**3. Compliers:** $D(1)=1, D(0)=0 \implies Y(D(1)) - Y(D(0)) = Y(1) - Y(0)$
+
+**4. Defiers:** Ruled out by Monotonicity $(A4)$
+
+The term $Y(D(1)) - Y(D(0))$ is zero for Always Takers and Never Takers. It is only non-zero for Compliers ($Y(1)-Y(0)$). Therefore:
+
+$$E[ (Y(D(1)) - Y(D(0))) \cdot (1-Z) ] = E[ (Y(1) - Y(0)) \cdot (1-Z)  \mid  \text{Compliers}] \cdot P(\text{Compliers})$$
+
+Now let's focus on the regression part:
+
+$$E[ P(Z=0 \mid X) E[Y \mid X, Z=1] ]$$
+
+Using Consistency and ($A1$ - $Z \perp Y(D(1))  \mid  X$) we can write:
+
+$$\begin{aligned}
+& E[ P(Z=0 \mid X) E[Y \mid X, Z=1] ] \\
+& \stackrel{\text{(A5)}}{=} E[ P(Z=0 \mid X) E[Y(D(1)) \mid X,Z=1] \\
+& \stackrel{\text{(A1)}}{=} E[ P(Z=0 \mid X) E[Y(D(1)) \mid X] ] \\
+& = E[ E[1-Z \mid X] E[Y(D(1)) \mid X] ] \\
+& = E[ E[(1-Z) Y(D(1)) \mid X] ] \\
+& = E[ (1-Z) Y(D(1)) ]
+\end{aligned}$$
+
+Now let's look at the correction part:
+
+$$E \left[ \frac{P(Z=0 \mid X)}{P(Z=1 \mid X)} Z (Y - E[Y \mid X, Z=1]) \right]$$
+
+By $(A1)$ Random Assignment and $(A2)$ Exclusion and $(A5)$ Consistency:
+
+$$\begin{aligned}
+& E[Y \mid X, Z=1] \\
+& \stackrel{\text{(A5 & A2)}}{=} E[Y(D(1)) \mid X, Z=1] \\
+& \stackrel{\text{(A1)}}{=} E[Y(D(1)) \mid X] \\
+\end{aligned}$$
+
+Let's plug this in the correction part and apply the LIE:
+
+$$\begin{aligned}
+& E \left[ \frac{P(Z=0 \mid X)}{P(Z=1 \mid X)} Z (Y - E[Y(D(1)) \mid X]) \right] \\
+& = E \left[ \frac{P(Z=0 \mid X)}{P(Z=1 \mid X)} Z (Y - E[Y(D(1)) \mid X]) \right] \\
+& \stackrel{\text{(LIE)}}{=} E \left[ E \left[ \frac{P(Z=0 \mid X)}{P(Z=1 \mid X)} Z (Y - E[Y(D(1)) \mid X])  \mid  X \right] \right] \\
+& = E \left[ \frac{P(Z=0 \mid X)}{P(Z=1 \mid X)} E \left[ Z (Y - E[Y(D(1)) \mid X])  \mid  X \right] \right] \\
+\end{aligned}$$
+
+Focus on the inner part and apply the LIE again:
+
+$$\begin{aligned}
+& E \left[ Z (Y - E[Y(D(1)) \mid X])  \mid  X \right] \\
+& \stackrel{\text{(LIE)}}{=} \ E[1 \cdot (Y-E[Y(D(1)) \mid X])  \mid  X, Z=1] \cdot P(Z=1  \mid  X) \\
+& + E[0 \cdot (Y-E[Y(D(1)) \mid X])  \mid  X, Z=0] \cdot P(Z=0  \mid  X) \\
+& =  E[(Y-E[Y(D(1)) \mid X])  \mid  X, Z=1] \cdot P(Z=1  \mid  X) \\
+& = (E[Y  \mid  X, Z=1] - E[Y(D(1)) \mid X]) \cdot P(Z=1 \mid X) \\
+& \stackrel{\text{(A1&A5)}}{=} (E[Y(D(1))  \mid  X] - E[Y(D(1)) \mid X]) \cdot P(Z=1 \mid X) \\
+& = 0 \\
+\end{aligned}$$
+
+Now we look at the full AIPW representation of the numerator again, which we wrote as:
+
+$$E \left[ \left( \text{Regression Part} + \text{Correction Part} \right) - (1-Z)Y \right]$$
+
+We have shown that the regression part is equal to $E[ (1-Z) Y(D(1)) ]$ and the correction part is equal to $0$. Additionally since $Z=0$ under Consistency and Exclusion Restruction $D=D(0)$ and $Y = Y(D(0))$. Then the observed part becomes:
+
+$$E[(1-Z)Y] = E[(1-Z) Y(D(0))]$$
+
+Putting everything together:
+
+$$\begin{aligned}
+& \frac{1}{P(Z=0)} E \left[ \left( \text{Regression Part} + \text{Correction Part} \right) - (1-Z)Y \right] \\
+& = \frac{1}{P(Z=0)} (E[(1-Z) Y(D(1))] - E[ (1-Z) Y(D(0)) ]) \\
+& = \frac{E[ (1-Z) (Y(D(1)) - Y(D(0))) ]}{P(Z=0)} \\
+\end{aligned}$$
+
+We now verify that this expression matches our target by using the LIE and conditioning on compliance types:
+
+$$\begin{aligned}
+& \frac{E[ (1-Z) (Y(D(1)) - Y(D(0))) ]}{P(Z=0)} \\
+& \stackrel{\text{(LIE)}}{=} \frac{1}{P(Z=0)} \Big(  \underset{\textstyle{= 0}}{\underbrace{E[ (1-Z)(Y(D(1))-Y(D(0)))  \mid  \text{Always Takers}]}} \cdot P(\text{Always Takers}) \\
+& \quad +  \underset{\textstyle{= 0}}{\underbrace{E[ (1-Z)(Y(D(1))-Y(D(0)))  \mid  \text{Never Takers}]}} \cdot P(\text{Never Takers}) \\
+& \quad + E[ (1-Z)(Y(D(1))-Y(D(0)))  \mid  \text{Compliers}] \cdot P(\text{Compliers}) \\
+& \quad + E[ (1-Z)(Y(D(1))-Y(D(0)))  \mid  \text{Defiers}] \cdot  \underset{\textstyle{= 0 \quad (A4)}}{\underbrace{P(\text{Defiers}}})\Big) \\
+& = \frac{E[ (1-Z)(Y(1)-Y(0))  \mid  \text{Compliers}] \cdot P(\text{Compliers})}{P(Z=0)} \\
+& = \frac{E[ (Y(1)-Y(0))  \mid  \text{Compliers}, Z=0] \cdot P(\text{Compliers}, Z=0)}{P(Z=0)} \\
+& = E[ Y(1)-Y(0)  \mid  \text{Compliers}, Z=0] \cdot P(\text{Compliers}  \mid  Z=0)
+\end{aligned}$$
+
+Therefore we have shown that the numerator is identified by the AIPW structure above.
+
+Let's do the same for the denominator:We will proceed to show that the denominator is identified by the same AIPW structure:
+
+$$\frac{1}{P(Z=0)} E \left[ \left( \underset{\text{Regression Part}}{\underbrace{P(Z=0 \mid X) E[D \mid X, Z=1]}} + \underset{\text{Correction Part}}{\underbrace{\frac{P(Z=0 \mid X)Z(D - E[D \mid X, Z=1])}{P(Z=1 \mid X)}}} \right) - (1-Z) D \right]$$
+
+Let's rewrite again:
+
+$$E[ D(1) - D(0)  \mid  Z=0]$$
+
+By the definition of conditional expectation we can write this as:
+
+$$E[ D(1) - D(0)  \mid  Z=0 ] = \frac{E[ (D(1) - D(0)) \cdot (1-Z) ]}{P(Z=0)}$$
+
+We can again identify 4 types:
+
+**1. Always Takers:** $D(1)=1, D(0)=1 \implies D(1) - D(0) = 0$
+
+**2. Never Takers:** $D(1)=0, D(0)=0 \implies D(1) - D(0) = 0$
+
+**3. Compliers:** $D(1)=1, D(0)=0 \implies D(1) - D(0) = 1$
+
+**4. Defiers:** Ruled out by Monotonicity $(A4)$
+
+So the term $E[ (D(1) - D(0)) \cdot (1-Z) ]$ is non-zero only for Compliers:
+
+$$E[ (D(1) - D(0)) \cdot (1-Z) ] = E[ 1 \cdot (1-Z) ] \cdot P(\text{Compliers}) = E[1-Z] \cdot P(\text{Compliers})$$
+
+Now let's focus on the regression part:
+
+$$E[ P(Z=0 \mid X) E[D \mid X, Z=1] ]$$
+
+Using Consistency and ($A1$ - $Z \perp D(1)  \mid  X$) we can write:
+
+$$\begin{aligned}
+& E[ P(Z=0 \mid X) E[D \mid X, Z=1] ] \\
+& \stackrel{\text{(A5)}}{=} E[ P(Z=0 \mid X) E[D(1) \mid X,Z=1] \\
+& \stackrel{\text{(A1)}}{=} E[ P(Z=0 \mid X) E[D(1) \mid X] ] \\
+& = E[ E[1-Z \mid X] E[D(1) \mid X] ] \\
+& = E[ E[(1-Z) D(1) \mid X] ] \\
+& = E[ (1-Z) D(1) ]
+\end{aligned}$$
+
+Now let's look at the correction part:
+
+$$E \left[ \frac{P(Z=0 \mid X)}{P(Z=1 \mid X)} Z (D - E[D \mid X, Z=1]) \right]$$
+
+By $(A1)$ Random Assignment and $(A5)$ Consistency:
+
+$$\begin{aligned}
+& E[D \mid X, Z=1] \\
+& \stackrel{\text{(A5)}}{=} E[D(1) \mid X, Z=1] \\
+& \stackrel{\text{(A1)}}{=} E[D(1) \mid X] \\
+\end{aligned}$$
+
+Let's plug this in the correction part and apply the LIE:
+
+$$\begin{aligned}
+& E \left[ \frac{P(Z=0 \mid X)}{P(Z=1 \mid X)} Z (D - E[D \mid X, Z=1]) \right] \\
+& = E \left[ \frac{P(Z=0 \mid X)}{P(Z=1 \mid X)} Z (D - E[D(1) \mid X]) \right] \\
+& \stackrel{\text{(LIE)}}{=} E \left[ E \left[ \frac{P(Z=0 \mid X)}{P(Z=1 \mid X)} Z (D - E[D(1) \mid X])  \mid  X \right] \right] \\
+& = E \left[ \frac{P(Z=0 \mid X)}{P(Z=1 \mid X)} E \left[ Z (D - E[D(1) \mid X])  \mid  X \right] \right] \\
+\end{aligned}
+$$
+
+Focus on the inner part and apply the LIE again:
+
+$$
+\begin{aligned}
+& E \left[ Z (D - E[D(1) \mid X])  \mid  X \right] \\
+& \stackrel{\text{(LIE)}}{=} \ E[1 \cdot (D-E[D(1) \mid X])  \mid  X, Z=1] \cdot P(Z=1  \mid  X) \\
+& + E[0 \cdot (D-E[D(1) \mid X])  \mid  X, Z=0] \cdot P(Z=0  \mid  X) \\
+& =  E[(D-E[D(1) \mid X])  \mid  X, Z=1] \cdot P(Z=1  \mid  X) \\
+& = (P(Z=1 \mid X)) \cdot (E[D  \mid  X, Z=1] - E[D(1) \mid X]) \\
+& \stackrel{\text{(A1&A5)}}{=} (P(Z=1 \mid X)) \cdot ( E[D(1)  \mid  X] - E[D(1) \mid X]) \\
+& = 0 \\
+\end{aligned}$$
+
+Now we look at the full AIPW representation of the denominator again. We have shown that the regression part is equal to $E[ (1-Z) D(1) ]$ and the correction part is equal to $0$.
+
+Additionally since $Z=0$ under Consistency $D=D(0)$.
+
+Then the observed part becomes:
+
+$$E[(1-Z)D] = E[(1-Z) D(0)]$$
+
+Putting everything together:
+
+$$\begin{aligned}
+& \frac{1}{P(Z=0)} E \left[ \left( \text{Regression Part} + \text{Correction Part} \right) - (1-Z)D \right] \\
+& = \frac{1}{P(Z=0)} (E[(1-Z) D(1)] - E[ (1-Z) D(0) ]) \\
+& = \frac{E[ (1-Z) (D(1) - D(0)) ]}{P(Z=0)} \\
+\end{aligned}$$
+
+We now verify that this expression matches our target by using the LIE and conditioning on compliance types:
+
+$$\begin{aligned}
+& \frac{E[ (1-Z) (D(1) - D(0)) ]}{P(Z=0)} \\
+& \stackrel{\text{(LIE)}}{=} \frac{1}{P(Z=0)} \Big( \underset{\textstyle{= 0}}{\underbrace{E[ (1-Z)(D(1)-D(0))  \mid  \text{Always Takers}]}} \cdot P(\text{Always Takers}) \\
+& \quad + \underset{\textstyle{= 0}}{\underbrace{E[ (1-Z)(D(1)-D(0))  \mid  \text{Never Takers}]}} \cdot P(\text{Never Takers}) \\
+& \quad + E[ (1-Z)(D(1)-D(0))  \mid  \text{Compliers}] \cdot P(\text{Compliers}) \\
+& \quad + E[ (1-Z)(D(1)-D(0))  \mid  \text{Defiers}] \cdot \underset{\textstyle{= 0 \quad (A4)}}{\underbrace{P(\text{Defiers}}})\Big) \\
+& = \frac{E[ (1-Z) \cdot 1  \mid  \text{Compliers}] \cdot P(\text{Compliers})}{P(Z=0)} \\
+& = \frac{E[ 1  \mid  \text{Compliers}, Z=0] \cdot P(\text{Compliers}, Z=0)}{P(Z=0)} \\
+& = P(\text{Compliers}  \mid  Z=0)
+\end{aligned}$$
+
+Since the two expressions are equal, we have shown that the denominator is identified.
+
+We have therefore also shown that the LATU is identified as the ratio of the two symmetric AIPW-ATU expressions. Again, the term $\frac{1}{P(Z=0)}$ cancels in the ratio.
+
+In full:
+
+$$\tau_{LATU} = \frac{ E \left[ \left( P(Z=0 \mid X) E[Y \mid X, Z=1] + \frac{P(Z=0 \mid X)Z(Y - E[Y \mid X, Z=1])}{P(Z=1 \mid X)} \right) - (1-Z)Y \right]}{ E \left[ \left( P(Z=0 \mid X) E[D \mid X, Z=1] + \frac{P(Z=0 \mid X)Z(D - E[D \mid X, Z=1])}{P(Z=1 \mid X)} \right) - (1-Z)D \right]} \quad \blacksquare$$
+
+### **2.3 Influence function derivation**
+
+#### **LATT**
 
 We have shown in the previous section that the LATT can be expressed as a ratio of two ATTs. As we know the Neyman-orthogonal score for the ATT, we can use the chain rule to derive an influence function for the LATT.
 
 The Neyman orthogonal score of the ATT is given by:
 
 $$
-\psi_{ATT}(O;\theta;\eta) = \underset{\textstyle=\tilde{Y}_{ATT}}{\underbrace{ \frac{D}{e}(Y - m(0,X)) - \frac{(1-D)e(X)}{e(1-e(X))}(Y - m(0,X))}}  - \tau_{ATT} \frac{D}{e}
+\psi_{\text{ATT}}(O;\theta;\eta) = \underbrace{ \frac{D}{e}(Y - m(0,X)) - \frac{(1-D)e(X)}{e(1-e(X))}(Y - m(0,X))}_{=\tilde{Y}_{\text{ATT}}}  - \tau_{\text{ATT}} \frac{D}{e}
 $$
 
-With $O=(D,X,Y)$, $\theta = \tau_{ATT}$, $\eta = (m(0,X), e(X), e)$ and the two linear score components $\psi_a(O;\eta) = (-1)\frac{D}{e}$ and $\psi_b(O;\eta) = \tilde{Y}_{ATT}$.
+With $O=(D,X,Y)$, $\theta = \tau_{\text{ATT}}$, $\eta = (m(0,X), e(X), e)$ and the two linear score components $\psi_a(O;\eta) = (-1)\frac{D}{e}$ and $\psi_b(O;\eta) = \tilde{Y}_{\text{ATT}}$.
 
 $m(0,X)$ is the regression function of $Y$ given $D=0$ and $X$, $e(X)$ is the propensity score of $D$ given $X$ and $e$ is the unconditional probability of treatment.
 
-Let's tailor this score function now to the two specific ATTs we have.
-
-Let's start with the numerator, which is the ATT of the instrument on the outcome. Therefore we simply need to replace $D$ with $Z$ and all nuisance parameters respectively:
+Let's tailor this score function now to the two specific ATTs we have. Let's start with the numerator, which is the ATT of the instrument on the outcome. Therefore we simply need to replace $D$ with $Z$ and all nuisance parameters respectively:
 
 $$
-\psi_{ATT}^{Y}(O;\theta;\eta)
-= \underset{\textstyle=\tilde{Y}_{ATT}^{Z}}{\underbrace{ \frac{Z}{h}(Y - m_{Z}(0,X)) - \frac{(1-Z)(h(X))}{h(1-h(X))}(Y - m_{Z}(0,X))}}  - \tau_{ATT}^{Y} \frac{Z}{h}
+\psi_{\text{ATT}}^{Y}(O;\theta;\eta) = \underbrace{ \frac{Z}{h}(Y - m_{Z}(0,X)) - \frac{(1-Z)h(X)}{h(1-h(X))}(Y - m_{Z}(0,X))}_{=\tilde{Y}_{\text{ATT}}^{Z}}  - \tau_{\text{ATT}}^{Y} \frac{Z}{h}
 $$
 
-, where $O=(Z,X,Y)$, $\theta = \tau_{ATT}^{Y}$, $\eta = (m_{Z}(0,X), h(X), h)$ and the two linear score components $\psi_a^{Y}(O;\eta) = (-1)\frac{Z}{h}$ and $\psi_b^{Y}(O;\eta) = \tilde{Y}_{ATT}^{Z}$.
+Where $O=(Z,X,Y)$, $\theta = \tau_{\text{ATT}}^{Y}$, $\eta = (m_{Z}(0,X), h(X), h)$ and the two linear score components $\psi_a^{Y}(O;\eta) = (-1)\frac{Z}{h}$ and $\psi_b^{Y}(O;\eta) = \tilde{Y}_{\text{ATT}}^{Z}$.
 
 The nuisance parameters are now defined as follows: $m_{Z}(0,X)$ is the regression function of $Y$ given $Z=0$ and $X$, $h(X)$ is the propensity score of $Z$ given $X$ and $h$ is the unconditional probability of $Z$.
 
 Let's proceed with the denominator, which is the ATT of the instrument on the treatment:
 
-We define $O=(Z,X,D)$, $\theta = \tau_{ATT}^{D}$, $\eta = (e_{Z}(0,X), h(X), h)$ and the two linear score components $\psi_a^{D}(O;\eta) = (-1)\frac{Z}{h}$ and $\psi_b^{D}(O;\eta) = \tilde{D}_{ATT}^{Z}$.
+We define $O=(Z,X,D)$, $\theta = \tau_{\text{ATT}}^{D}$, $\eta = (e_{Z}(0,X), h(X), h)$ and the two linear score components $\psi_a^{D}(O;\eta) = (-1)\frac{Z}{h}$ and $\psi_b^{D}(O;\eta) = \tilde{D}_{\text{ATT}}^{Z}$.
 
 The complete score function for the ATT of the instrument on the treatment is then given by:
 
 $$
-\psi_{ATT}^{D}(O;\theta;\eta) = \underset{\textstyle=\tilde{D}_{ATT}^{Z}}{\underbrace{ \frac{Z}{h}(D - e_{Z}(0,X)) - \frac{(1-Z)(h(X))}{h(1-h(X))}(D - e_{Z}(0,X))}}  - \tau_{ATT}^{D} \frac{Z}{h}
+\psi_{\text{ATT}}^{D}(O;\theta;\eta) = \underbrace{ \frac{Z}{h}(D - e_{Z}(0,X)) - \frac{(1-Z)h(X)}{h(1-h(X))}(D - e_{Z}(0,X))}_{=\tilde{D}_{\text{ATT}}^{Z}}  - \tau_{\text{ATT}}^{D} \frac{Z}{h}
 $$
 
-Now that we have defined the two score functions for the numerator and denominator, we can derive the two influence functions $\Psi_{ATT}^{Y}$ and $\Psi_{ATT}^{D}$ using the linear components:
+**Simplification to Wald-ATT Components**
+
+Since the LATT is the ratio of these two ATTs, the scaling factor $1/h$ (where $h=\mathbb{P}(Z=1)$) appears in both the numerator and the denominator and cancels out. We can therefore work with the unscaled scores, which we denote as "Wald-ATT" scores to indicate they form a Wald estimator based on ATT moments.
+
+Formally, we define the parameter $\tau_{\text{Wald-ATT}}$ as the unconditional expectation of the adjusted score: $\tau_{\text{Wald-ATT}} := \mathbb{E}[\tilde{Y}_{\text{Wald-ATT}}^{Z}]$. Since the moment condition for a simple population mean is $\mathbb{E}[X - \mu] = 0$, the corresponding score is simply $\psi = \tilde{Y}_{\text{Wald-ATT}}^{Z} - \tau_{\text{Wald-ATT}}$, eliminating the $Z$ weight required for conditional effect estimation.
+
+We define the unscaled score components for the numerator as:
+
+$$
+\psi_{\text{Wald-ATT}}^{Y}(O;\theta;\eta) = \underbrace{ Z(Y - m_{Z}(0,X)) - \frac{(1-Z)h(X)}{(1-h(X))}(Y - m_{Z}(0,X))}_{=\tilde{Y}_{\text{Wald-ATT}}^{Z}}  - \tau_{\text{Wald-ATT}}^{Y}
+$$
+
+With the definitions $O=(Z,X,Y)$, $\theta = \tau_{\text{Wald-ATT}}^{Y}$, $\eta = (m_{Z}(0,X), h(X))$ and the two linear score components $\psi_a^{Y}(O;\eta) = -1$ and $\psi_b^{Y}(O;\eta) = \tilde{Y}_{\text{Wald-ATT}}^{Z}$.
+
+And for the denominator:
+
+$$
+\psi_{\text{Wald-ATT}}^{D}(O;\theta;\eta) = \underbrace{ Z(D - e_{Z}(0,X)) - \frac{(1-Z)h(X)}{(1-h(X))}(D - e_{Z}(0,X))}_{=\tilde{D}_{\text{Wald-ATT}}^{Z}}  - \tau_{\text{Wald-ATT}}^{D}
+$$
+
+With the definitions $O=(Z,X,D)$, $\theta = \tau_{\text{Wald-ATT}}^{D}$, $\eta = (e_{Z}(0,X), h(X))$ and the two linear score components $\psi_a^{D}(O;\eta) = -1$ and $\psi_b^{D}(O;\eta) = \tilde{D}_{\text{Wald-ATT}}^{Z}$.
+
+These correspond to the Adjusted Reduced Form and Adjusted First Stage, respectively. The influence functions for these moments are simply:
 
 $$
 \begin{aligned}
-& \Psi_{ATT}^{Y} = - \mathbb{E}[\psi_a^{Y}]^{-1} \cdot \psi_{ATT}^{Y} \\
-& = - \left(\mathbb{E}\left[-\frac{Z}{h}\right]\right)^{-1} \cdot \left(\tilde{Y}_{ATT}^{Z} - \tau_{ATT}^{Y} \frac{Z}{h}\right) \\
-& = - \left(-\frac{\mathbb{E}[Z]}{h}\right)^{-1} \cdot \left(\tilde{Y}_{ATT}^{Z} - \tau_{ATT}^{Y} \frac{Z}{h}\right) \\
-& = - \left(-\frac{h}{h}\right)^{-1} \left(\tilde{Y}_{ATT}^{Z} - \tau_{ATT}^{Y} \frac{Z}{h}\right) \\
-& = - \left(-1\right)^{-1} \left(\tilde{Y}_{ATT}^{Z} - \tau_{ATT}^{Y} \frac{Z}{h}\right) \\
-& = \tilde{Y}_{ATT}^{Z} - \tau_{ATT}^{Y} \frac{Z}{h} \\
+& \Psi_{\text{Wald-ATT}}^{Y}  = - \mathbb{E}[\psi_a^{Y}(O;\eta)]^{-1} \cdot \psi_{\text{Wald-ATT}}^{Y}(O;\theta;\eta) \\
+& = - \mathbb{E}[(-1)]^{-1} \cdot \psi_{\text{Wald-ATT}}^{Y}(O;\theta;\eta) \\
+& = \psi_{\text{Wald-ATT}}^{Y}(O;\theta;\eta) \\
+& = \tilde{Y}_{\text{Wald-ATT}}^{Z} - \tau_{\text{Wald-ATT}}^{Y} \\
 \end{aligned}
 $$
-
-Subsequently for the ATT of the instrument on the treatment we have:
 
 $$
 \begin{aligned}
-& \Psi_{ATT}^{D} = - \mathbb{E}[\psi_a^{D}]^{-1} \cdot \psi_{ATT}^{D} \\
-& = - \left(\mathbb{E}\left[-\frac{Z}{h}\right]\right)^{-1} \cdot \left(\tilde{D}_{ATT}^{Z} - \tau_{ATT}^{D} \frac{Z}{h}\right) \\
-& = - \left(-\frac{\mathbb{E}[Z]}{h}\right)^{-1} \cdot \left(\tilde{D}_{ATT}^{Z} - \tau_{ATT}^{D} \frac{Z}{h}\right) \\
-& = - \left(-\frac{h}{h}\right)^{-1} \left(\tilde{D}_{ATT}^{Z} - \tau_{ATT}^{D} \frac{Z}{h}\right) \\
-& = - \left(-1\right)^{-1} \left(\tilde{D}_{ATT}^{Z} - \tau_{ATT}^{D} \frac{Z}{h}\right) \\
-& = \tilde{D}_{ATT}^{Z} - \tau_{ATT}^{D} \frac{Z}{h} \\
+& \Psi_{\text{Wald-ATT}}^{D}  = - \mathbb{E}[\psi_a^{D}(O;\eta)]^{-1} \cdot \psi_{\text{Wald-ATT}}^{D}(O;\theta;\eta) \\
+& = - \mathbb{E}[(-1)]^{-1} \cdot \psi_{\text{Wald-ATT}}^{D}(O;\theta;\eta) \\
+& = \psi_{\text{Wald-ATT}}^{D}(O;\theta;\eta) \\
+& = \tilde{D}_{\text{Wald-ATT}}^{Z} - \tau_{\text{Wald-ATT}}^{D} \\
 \end{aligned}
 $$
 
-Our LATT parameter is a ratio of the two ATTs:
+Our LATT parameter is the ratio of these two unscaled moments:
 
 $$
-\tau_{LATT} = \frac{\tau_{ATT}^{Y}}{\tau_{ATT}^{D}}
+\tau_{\text{LATT}} = \frac{\tau_{\text{Wald-ATT}}^{Y}}{\tau_{\text{Wald-ATT}}^{D}}
 $$
 
 Using the chain rule we can derive the influence function for the LATT as follows:
 
 $$
 \begin{aligned}
-& \Psi_{LATT} = \frac{\partial \tau_{LATT}}{\partial \tau_{ATT}^{Y}} \Psi_{ATT}^{Y} + \frac{\partial \tau_{LATT}}{\partial \tau_{ATT}^{D}} \Psi_{ATT}^{D} \\
-& = \frac{\Psi_{ATT}^{Y}}{\tau_{ATT}^{D}} - \frac{\tau_{ATT}^{Y}}{(\tau_{ATT}^{D})^2} \Psi_{ATT}^{D}
+\Psi_{\text{LATT}} &= \frac{\partial \tau_{\text{LATT}}}{\partial \tau_{\text{Wald-ATT}}^{Y}} \Psi_{\text{Wald-ATT}}^{Y} + \frac{\partial \tau_{\text{LATT}}}{\partial \tau_{\text{Wald-ATT}}^{D}} \Psi_{\text{Wald-ATT}}^{D} \\
+&= \frac{1}{\tau_{\text{Wald-ATT}}^{D}} \Psi_{\text{Wald-ATT}}^{Y} - \frac{\tau_{\text{Wald-ATT}}^{Y}}{(\tau_{\text{Wald-ATT}}^{D})^2} \Psi_{\text{Wald-ATT}}^{D}
 \end{aligned}
 $$
 
-Now we plug in the two ATT influence functions we have derived before using our linear components:
+Now we plug in the two simplified influence functions:
 
 $$
 \begin{aligned}
-& \Psi_{LATT} = \frac{\tilde{Y}_{ATT}^{Z} - \tau_{ATT}^{Y} \frac{Z}{h}}{\tau_{ATT}^{D}} - \frac{\tau_{ATT}^{Y}}{(\tau_{ATT}^{D})^2} \left(\tilde{D}_{ATT}^{Z} - \tau_{ATT}^{D} \frac{Z}{h}\right) \\
-& = \frac{\tilde{Y}_{ATT}^{Z}}{\tau_{ATT}^{D}} - \frac{\tau_{ATT}^{Y}}{\tau_{ATT}^{D}} \frac{Z}{h} - \frac{\tau_{ATT}^{Y}}{(\tau_{ATT}^{D})^2} \tilde{D}_{ATT}^{Z} - \left( \frac{\tau_{ATT}^{Y}}{(\tau_{ATT}^{D})^2} \right) \left( - \tau_{ATT}^{D} \frac{Z}{h} \right) \\
-& = \frac{\tilde{Y}_{ATT}^{Z}}{\tau_{ATT}^{D}} - \frac{\tau_{ATT}^{Y}}{\tau_{ATT}^{D}} \frac{Z}{h} - \frac{\tau_{ATT}^{Y}}{(\tau_{ATT}^{D})^2} \tilde{D}_{ATT}^{Z} + \frac{\tau_{ATT}^{Y}}{\tau_{ATT}^{D}} \frac{Z}{h} \\
-& = \frac{\tilde{Y}_{ATT}^{Z}}{\tau_{ATT}^{D}} - \frac{\tau_{ATT}^{Y}}{(\tau_{ATT}^{D})^2} \tilde{D}_{ATT}^{Z} \\
+\Psi_{\text{LATT}} &= \frac{1}{\tau_{\text{Wald-ATT}}^{D}}(\tilde{Y}_{\text{Wald-ATT}}^{Z} - \tau_{\text{Wald-ATT}}^{Y}) - \frac{\tau_{\text{Wald-ATT}}^{Y}}{(\tau_{\text{Wald-ATT}}^{D})^2} (\tilde{D}_{\text{Wald-ATT}}^{Z} - \tau_{\text{Wald-ATT}}^{D}) \\
+&= \frac{1}{\tau_{\text{Wald-ATT}}^{D}} \left( \tilde{Y}_{\text{Wald-ATT}}^{Z} - \tau_{\text{Wald-ATT}}^{Y} - \tau_{\text{LATT}}(\tilde{D}_{\text{Wald-ATT}}^{Z} - \tau_{\text{Wald-ATT}}^{D}) \right) \\
+&= \frac{1}{\tau_{\text{Wald-ATT}}^{D}} \left( \tilde{Y}_{\text{Wald-ATT}}^{Z} - \tau_{\text{LATT}} \tilde{D}_{\text{Wald-ATT}}^{Z} - (\tau_{\text{Wald-ATT}}^{Y} - \tau_{\text{LATT}} \tau_{\text{Wald-ATT}}^{D}) \right)
 \end{aligned}
 $$
 
-We can write this in a more compact form by substituting back the definition of $\tau_{LATT}$ and factoring out $\frac{1}{\tau_{ATT}^{D}}$:
+Since $\tau_{\text{Wald-ATT}}^{Y} = \tau_{\text{LATT}} \tau_{\text{Wald-ATT}}^{D}$, the term $(\tau_{\text{Wald-ATT}}^{Y} - \tau_{\text{LATT}} \tau_{\text{Wald-ATT}}^{D})$ cancels out.
+
+$$
+\Psi_{\text{LATT}} = \frac{1}{\tau_{\text{Wald-ATT}}^{D}} \left( \tilde{Y}_{\text{Wald-ATT}}^{Z} - \tau_{\text{LATT}} \cdot \tilde{D}_{\text{Wald-ATT}}^{Z} \right)
+$$
+
+Before we can apply the Double Machine Learning framework we additionally need to derive the new empirical moment condition of $\tau_{\text{LATT}}$ and solve it. To derive the moment condition, we recall that $\tau_{\text{LATT}}$ is the ratio of the two Wald-ATT moments:
 
 $$
 \begin{aligned}
-& \Psi_{LATT} = \frac{1}{\tau_{ATT}^{D}} \left( \tilde{Y}_{ATT}^{Z} - \tau_{LATT} \cdot \tilde{D}_{ATT}^{Z} \right) \\
+\tau_{\text{LATT}} &= \frac{\tau_{\text{Wald-ATT}}^{Y}}{\tau_{\text{Wald-ATT}}^{D}} \\
+&= \frac{\mathbb{E}[\tilde{Y}_{\text{Wald-ATT}}^{Z}]}{\mathbb{E}[\tilde{D}_{\text{Wald-ATT}}^{Z}]} \\
+\implies & \mathbb{E}[\tilde{Y}_{\text{Wald-ATT}}^{Z} - \tau_{\text{LATT}} \tilde{D}_{\text{Wald-ATT}}^{Z}] = 0
 \end{aligned}
 $$
 
-This is our final influence function for the LATT. We can observe that the final version simplifies to a scaled type of pseudo outcome on pseudo outcome regression, which looks very familiar.
-
-Before we can apply the Double Machine Learning framework we additionally need to derive the new empirical moment condition of $\tau_{LATT}$ and solve it.
-
-To derive the moment condition, we recall that $\tau_{LATT}$ is the ratio of two ATTs:
-
-$$
-\begin{aligned}
-& \tau_{LATT} = \frac{\tau_{ATT}^{Y}}{\tau_{ATT}^{D}} \\
-& = \frac{E[\psi_{ATT}^{Y}]}{E[\psi_{ATT}^{D}]} \\
-& \implies E[\psi_{ATT}^{Y} - \tau_{LATT} \psi_{ATT}^{D}] = 0 \\
-\end{aligned}
-$$
-
-Now let's look at this moment condition in more detail:
-
-$$
-\begin{aligned}
-& E[\psi_{ATT}^{Y} - \tau_{LATT} \cdot \psi_{ATT}^{D}] = 0 \\
-& E[(\tilde{Y}_{ATT}^{Z} - \tau_{ATT}^{Y} \frac{Z}{h}) - \tau_{LATT} \cdot (\tilde{D}_{ATT}^{Z} - \tau_{ATT}^{D} \frac{Z}{h})] = 0 \\
-& E[\underset{Residual \ Part}{\underbrace{(\tilde{Y}_{ATT}^{Z} - \tau_{LATT}\cdot\tilde{D}_{ATT}^{Z})}} + \underset{Centering \ Part}{\underbrace{(- \tau_{ATT}^{Y} \frac{Z}{h} + \tau_{LATT}\cdot\tau_{ATT}^{D} \frac{Z}{h})}}] = 0 \\
-\end{aligned}
-$$
-
-Let's zoom in on the centering part, plug in the definition of $\tau_{LATT}$ and show that its expectation is equal to zero:
-
-$$
-\begin{aligned}
-& E[- \tau_{ATT}^{Y} \frac{Z}{h} + \tau_{LATT}\cdot\tau_{ATT}^{D} \frac{Z}{h}] \\
-& = E[- \tau_{ATT}^{Y} \frac{Z}{h} + \frac{\tau_{ATT}^{Y}}{\tau_{ATT}^{D}} \cdot\tau_{ATT}^{D} \frac{Z}{h}] \\
-& = E[- \tau_{ATT}^{Y} \frac{Z}{h} + \tau_{ATT}^{Y} \frac{Z}{h}] \\
-& = 0 \\
-\end{aligned}
-$$
-
-Therefore the moment condition simplifies to:
-
-$$
-E[\tilde{Y}_{ATT}^{Z} - \tau_{LATT}\cdot\tilde{D}_{ATT}^{Z}] = 0
-$$
-
-With the two linear score components $\psi_a(O; \eta) = (-1) \tilde{D}_{ATT}^{Z}$ and $\psi_b(O; \eta) = \tilde{Y}_{ATT}^{Z}$.
+With the two linear score components $\psi_a(O; \eta) = - \tilde{D}_{\text{Wald-ATT}}^{Z}$ and $\psi_b(O; \eta) = \tilde{Y}_{\text{Wald-ATT}}^{Z}$.
 
 Now that we have derived the influence function and the empirical Neyman-orthogonal moment condition for our new parameter $\tau_{LATT}$, we can use following procedure to estimate $\hat\tau_{LATT}$ using the Double Machine Learning framework:
 
-1.  Estimate the nuisance parameters $m_{Z}(0,X)$, $e_{Z}(0,X)$, $h(X)$ and $h$ with cross-fitted high quality machine learning methods.
+1.  Estimate the nuisance parameters $m_{Z}(0,X)$, $e_{Z}(0,X)$ and $h(X)$ with cross-fitted high quality machine learning methods.
 
 2.  Estimate the target parameter $\tau_{LATT}$ by solving the empirical moment condition:
 
@@ -539,7 +894,7 @@ $$
 Plugging our derived linear scores in:
 
 $$
-\hat\tau_{LATT} = - \frac{\sum_{i} \tilde{Y}_{ATT,i}^{Z}}{\sum_{i} (-1) \tilde{D}_{ATT,i}^{Z}} = \frac{\sum_{i} \tilde{Y}_{ATT,i}^{Z}}{\sum_{i} \tilde{D}_{ATT,i}^{Z}}
+\hat\tau_{LATT} = - \frac{\sum_{i} \tilde{Y}_{WALD-ATT,i}^{Z}}{\sum_{i} (-1) \tilde{D}_{WALD-ATT,i}^{Z}} = \frac{\sum_{i} \tilde{Y}_{WALD-ATT,i}^{Z}}{\sum_{i} \tilde{D}_{WALD-ATT,i}^{Z}}
 $$
 
 3.  Estimate standard errors using the derived influence function:
@@ -551,74 +906,229 @@ $$
 \end{aligned}
 $$
 
-### 2.4 Weight representation
+#### **LATU**
 
-#### LATT
+We have shown in the previous section that the LATU can be expressed as a ratio of two ATUs. We can easily adapt the Neyman-orthogonal score of the ATT to the ATU by swapping the treatment weights and exchanging the regression functions and subsequent nuisance parameters accordingly.
 
-In the package and in this exercise, we use smoothers for estimating the nuisance parameters. That means that the vector of $z$-specific predictions for $Y$ and $D$ can be expressed as:
+As we know the Neyman-orthogonal score for the ATU, we can use the chain rule to derive an influence function for the LATU.
 
-$$\hat{Y}_{0}^z = S_{0}^z Y \quad \text{and} \quad \hat{D}_{0}^z = S_{0}^z D$$
+The Neyman orthogonal score of the ATU is given by:
 
-where $S_0^z$ is the smoothing matrix.
+$$\psi_{\text{ATU}}(O;\theta;\eta) = \underbrace{\frac{D(1-e(X))}{(1-e)e(X)}(Y - m(1,X)) - \frac{1-D}{1-e}(Y - m(1,X))}_{\tilde{Y}_{\text{ATU}}} - \tau_{\text{ATU}} \frac{1-D}{1-e}$$
 
-We start with the estimator for $\hat{\tau}_{LATT}$ derived in the previous section as the ratio of two ATTs (Effect of $Z$ on $Y$ divided by Effect of $Z$ on $D$). 
+With $O=(D,X,Y)$, $\theta = \tau_{\text{ATU}}$, $\eta = (m(1,X), e(X), e)$ and the two linear score components $\psi_a(O;\eta) = (-1)\frac{1-D}{1-e}$ and $\psi_b(O;\eta) = \tilde{Y}_{\text{ATU}}$.
 
-In finite samples, this is the ratio of the empirical sums of the score functions. Note that the scaling factor $1/h$ (where $h=P(Z=1)$) appears in both the numerator and the denominator and thus cancels out:
+$m(1,X)$ is the regression function of $Y$ given $D=1$ and $X$, $e(X)$ is the propensity score of $D$ given $X$ and $e$ is the unconditional probability of treatment.
 
-$$\hat{\tau}_{LATT} = \frac{\hat{\tau}_{ATT}^Y}{\hat{\tau}_{ATT}^D} = \frac{\mathbb{E}_n \left[ \frac{Z}{h}(Y - \hat{Y}_0^z) - \frac{(1-Z)h(X)}{h(1-h(X))} (Y - \hat{Y}_0^z) \right]}{\mathbb{E}_n \left[ \frac{Z}{h}(D - \hat{D}_0^z) - \frac{(1-Z)h(X)}{h(1-h(X))} (D - \hat{D}_0^z) \right]}$$
+Let's tailor this score function now to the two specific ATUs we have. Let's start with the numerator, which is the ATU of the instrument on the outcome. Therefore we simply need to replace $D$ with $Z$ and all nuisance parameters respectively:
 
-Canceling $1/h$ and factoring out the residual terms $(Y - \hat{Y}_0^z)$ and $(D - \hat{D}_0^z)$:
+$$\psi_{\text{ATU}}^{Y}(O;\theta;\eta) = \underbrace{ \frac{Z(1-h(X))}{(1-h)h(X)}(Y - m_{Z}(1,X)) -\frac{1-Z}{1-h}(Y - m_{Z}(1,X))}_{=\tilde{Y}_{\text{ATU}}^{Z}}  - \tau_{\text{ATU}}^{Y} \frac{1-Z}{1-h}$$
+
+Where $O=(Z,X,Y)$, $\theta = \tau_{\text{ATU}}^{Y}$, $\eta = (m_{Z}(1,X), h(X), h)$ and the two linear score components $\psi_a^{Y}(O;\eta) = (-1)\frac{1-Z}{1-h}$ and $\psi_b^{Y}(O;\eta) = \tilde{Y}_{\text{ATU}}^{Z}$.
+
+The nuisance parameters are now defined as follows: $m_{Z}(1,X)$ is the regression function of $Y$ given $Z=1$ and $X$, $h(X)$ is the propensity score of $Z$ given $X$ and $h$ is the unconditional probability of $Z$.
+
+Let's proceed with the denominator, which is the ATU of the instrument on the treatment:
+
+We define $O=(Z,X,D)$, $\theta = \tau_{\text{ATU}}^{D}$, $\eta = (e_{Z}(1,X), h(X), h)$ and the two linear score components $\psi_a^{D}(O;\eta) = (-1)\frac{1-Z}{1-h}$ and $\psi_b^{D}(O;\eta) = \tilde{D}_{\text{ATU}}^{Z}$.
+
+The complete score function for the ATU of the instrument on the treatment is then given by:
+
+$$\psi_{\text{ATU}}^{D}(O;\theta;\eta) = \underbrace{\frac{Z(1-h(X))}{(1-h)h(X)}(D - e_{Z}(1,X)) - \frac{1-Z}{1-h}(D - e_{Z}(1,X)) }_{=\tilde{D}_{\text{ATU}}^{Z}}  - \tau_{\text{ATU}}^{D} \frac{1-Z}{1-h}$$
+
+**Simplification to Wald-ATU Components**
+
+Since the LATU is the ratio of these two ATUs, the scaling factor $1/(1-h)$ (where $1-h=\mathbb{P}(Z=0)$) appears in both the numerator and the denominator and cancels out. We can therefore work with the unscaled scores, which we denote as "Wald-ATU" scores to indicate they form a Wald estimator based on ATU moments.
+
+Formally, we define the parameter $\tau_{\text{Wald-ATU}}$ as the unconditional expectation of the adjusted score: $\tau_{\text{Wald-ATU}} := \mathbb{E}[\tilde{Y}_{\text{Wald-ATU}}^{Z}]$. Since the moment condition for a simple population mean is $\mathbb{E}[X - \mu] = 0$, the corresponding score is simply $\psi = \tilde{Y}_{\text{Wald-ATU}}^{Z} - \tau_{\text{Wald-ATU}}$, eliminating the $1-Z$ weight required for conditional effect estimation.
+
+We define the unscaled score components for the numerator as:
+
+$$\psi_{\text{Wald-ATU}}^{Y}(O;\theta;\eta) = \underbrace{\frac{Z(1-h(X))}{h(X)}(Y - m_{Z}(1,X)) - (1-Z)(Y - m_{Z}(1,X)) }_{=\tilde{Y}_{\text{Wald-ATU}}^{Z}}  - \tau_{\text{Wald-ATU}}^{Y}$$
+
+With the definitions $O=(Z,X,Y)$, $\theta = \tau_{\text{Wald-ATU}}^{Y}$, $\eta = (m_{Z}(1,X), h(X))$ and the two linear score components $\psi_a^{Y}(O;\eta) = -1$ and $\psi_b^{Y}(O;\eta) = \tilde{Y}_{\text{Wald-ATU}}^{Z}$.
+
+And for the denominator:
+
+$$\psi_{\text{Wald-ATU}}^{D}(O;\theta;\eta) = \underbrace{ \frac{Z(1-h(X))}{h(X)}(D - e_{Z}(1,X)) - (1-Z)(D - e_{Z}(1,X))}_{=\tilde{D}_{\text{Wald-ATU}}^{Z}}  - \tau_{\text{Wald-ATU}}^{D}$$
+
+With the definitions $O=(Z,X,D)$, $\theta = \tau_{\text{Wald-ATU}}^{D}$, $\eta = (e_{Z}(1,X), h(X))$ and the two linear score components $\psi_a^{D}(O;\eta) = -1$ and $\psi_b^{D}(O;\eta) = \tilde{D}_{\text{Wald-ATU}}^{Z}$.These correspond to the Adjusted Reduced Form and Adjusted First Stage, respectively. The influence functions for these moments are simply:
+
+$$\begin{aligned}
+& \Psi_{\text{Wald-ATU}}^{Y}  = - \mathbb{E}[\psi_a^{Y}(O;\eta)]^{-1} \cdot \psi_{\text{Wald-ATU}}^{Y}(O;\theta;\eta) \\
+& = - \mathbb{E}[(-1)]^{-1} \cdot \psi_{\text{Wald-ATU}}^{Y}(O;\theta;\eta) \\
+& = \psi_{\text{Wald-ATU}}^{Y}(O;\theta;\eta) \\
+& = \tilde{Y}_{\text{Wald-ATU}}^{Z} - \tau_{\text{Wald-ATU}}^{Y} \\
+\end{aligned}$$
+
+$$\begin{aligned}
+& \Psi_{\text{Wald-ATU}}^{D}  = - \mathbb{E}[\psi_a^{D}(O;\eta)]^{-1} \cdot \psi_{\text{Wald-ATU}}^{D}(O;\theta;\eta) \\
+& = - \mathbb{E}[(-1)]^{-1} \cdot \psi_{\text{Wald-ATU}}^{D}(O;\theta;\eta) \\
+& = \psi_{\text{Wald-ATU}}^{D}(O;\theta;\eta) \\
+& = \tilde{D}_{\text{Wald-ATU}}^{Z} - \tau_{\text{Wald-ATU}}^{D} \\
+\end{aligned}$$
+
+Our LATU parameter is the ratio of these two unscaled moments:
+
+$$\tau_{\text{LATU}} = \frac{\tau_{\text{Wald-ATU}}^{Y}}{\tau_{\text{Wald-ATU}}^{D}}$$
+
+Using the chain rule we can derive the influence function for the LATU as follows:
+
+$$\begin{aligned}
+\Psi_{\text{LATU}} &= \frac{\partial \tau_{\text{LATU}}}{\partial \tau_{\text{Wald-ATU}}^{Y}} \Psi_{\text{Wald-ATU}}^{Y} + \frac{\partial \tau_{\text{LATU}}}{\partial \tau_{\text{Wald-ATU}}^{D}} \Psi_{\text{Wald-ATU}}^{D} \\
+&= \frac{1}{\tau_{\text{Wald-ATU}}^{D}} \Psi_{\text{Wald-ATU}}^{Y} - \frac{\tau_{\text{Wald-ATU}}^{Y}}{(\tau_{\text{Wald-ATU}}^{D})^2} \Psi_{\text{Wald-ATU}}^{D}
+\end{aligned}$$
+
+Now we plug in the two simplified influence functions:
+
+$$\begin{aligned}
+\Psi_{\text{LATU}} &= \frac{1}{\tau_{\text{Wald-ATU}}^{D}}(\tilde{Y}_{\text{Wald-ATU}}^{Z} - \tau_{\text{Wald-ATU}}^{Y}) - \frac{\tau_{\text{Wald-ATU}}^{Y}}{(\tau_{\text{Wald-ATU}}^{D})^2} (\tilde{D}_{\text{Wald-ATU}}^{Z} - \tau_{\text{Wald-ATU}}^{D}) \\
+&= \frac{1}{\tau_{\text{Wald-ATU}}^{D}} \left( \tilde{Y}_{\text{Wald-ATU}}^{Z} - \tau_{\text{Wald-ATU}}^{Y} - \tau_{\text{LATU}}(\tilde{D}_{\text{Wald-ATU}}^{Z} - \tau_{\text{Wald-ATU}}^{D}) \right) \\
+&= \frac{1}{\tau_{\text{Wald-ATU}}^{D}} \left( \tilde{Y}_{\text{Wald-ATU}}^{Z} - \tau_{\text{LATU}} \tilde{D}_{\text{Wald-ATU}}^{Z} - (\tau_{\text{Wald-ATU}}^{Y} - \tau_{\text{LATU}} \tau_{\text{Wald-ATU}}^{D}) \right)
+\end{aligned}$$
+
+Since $\tau_{\text{Wald-ATU}}^{Y} = \tau_{\text{LATU}} \tau_{\text{Wald-ATU}}^{D}$, the term $(\tau_{\text{Wald-ATU}}^{Y} - \tau_{\text{LATU}} \tau_{\text{Wald-ATU}}^{D})$ cancels out.
+
+$$\Psi_{\text{LATU}} = \frac{1}{\tau_{\text{Wald-ATU}}^{D}} \left( \tilde{Y}_{\text{Wald-ATU}}^{Z} - \tau_{\text{LATU}} \cdot \tilde{D}_{\text{Wald-ATU}}^{Z} \right)$$
+
+Before we can apply the Double Machine Learning framework we additionally need to derive the new empirical moment condition of $\tau_{\text{LATU}}$ and solve it. To derive the moment condition, we recall that $\tau_{\text{LATU}}$ is the ratio of the two Wald-ATU moments:
+
+$$\begin{aligned}
+\tau_{\text{LATU}} &= \frac{\tau_{\text{Wald-ATU}}^{Y}}{\tau_{\text{Wald-ATU}}^{D}} \\
+&= \frac{\mathbb{E}[\tilde{Y}_{\text{Wald-ATU}}^{Z}]}{\mathbb{E}[\tilde{D}_{\text{Wald-ATU}}^{Z}]} \\
+\implies & \mathbb{E}[\tilde{Y}_{\text{Wald-ATU}}^{Z} - \tau_{\text{LATU}} \tilde{D}_{\text{Wald-ATU}}^{Z}] = 0
+\end{aligned}$$
+
+With the two linear score components $\psi_a(O; \eta) = - \tilde{D}_{\text{Wald-ATU}}^{Z}$ and $\psi_b(O; \eta) = \tilde{Y}_{\text{Wald-ATU}}^{Z}$.Now that we have derived the influence function and the empirical Neyman-orthogonal moment condition for our new parameter $\tau_{LATU}$, we can use following procedure to estimate $\hat\tau_{LATU}$ using the Double Machine Learning framework:
+
+1.  Estimate the nuisance parameters $m_{Z}(1,X)$, $e_{Z}(1,X)$ and $h(X)$ with cross-fitted high quality machine learning methods.
+
+2.  Estimate the target parameter $\tau_{LATU}$ by solving the empirical moment condition:
+
+$$\hat\tau_{LATU} = - \frac{\sum_{i} \psi_b(O_i; \hat{\eta}_i)}{\sum_{i} \psi_a(O_i; \hat{\eta}_i)}$$
+
+Plugging our derived linear scores in:
+
+$$\hat\tau_{LATU} = - \frac{\sum_{i} \tilde{Y}_{WALD-ATU,i}^{Z}}{\sum_{i} (-1) \tilde{D}_{WALD-ATU,i}^{Z}} = \frac{\sum_{i} \tilde{Y}_{WALD-ATU,i}^{Z}}{\sum_{i} \tilde{D}_{WALD-ATU,i}^{Z}}$$
+
+3.  Estimate standard errors using the derived influence function:
+
+$$\begin{aligned}
+& \hat{\sigma}_{LATU} = \operatorname{Var}(\Psi_{LATU}) \\
+& \implies \widehat{\operatorname{se}}(\hat{\tau}_{LATU}) = \sqrt{\frac{\hat{\sigma}_{LATU}}{n}}
+\end{aligned}$$
+
+### **2.4 Weight representation**
+
+#### **LATT**
+
+In the paper "Treatment Effect Estimators as Weighted Outcomes" [3], Knaus shows that the vector of $z$-specific predictions for $Y$ and $D$ can be expressed by weighting the observed outcomes:
+
+$$\hat{Y}_{0}^z = S_{Y,0}^z Y \quad \text{and} \quad \hat{D}_{0}^z = S_{D,0}^z D$$
+
+where $S_{Y,0}^z$ and $S_{D,0}^z$ are the corresponding smoothing matrices for outcome $Y$ and treatment $D$ respectively.
+
+In the connected OutcomeWeights package [4] Knaus implements a DML procedure that allows extracting the outcome weights of various treatment effect estimators like the ATT-AIPW, ATU-AIPW and Wald-AIPW (LATE) by using linear smoothers in the nuisance parameter estimation process.
+
+We use the general framework proposed by Knaus to derive the weight representation of our LATT and LATU similar to the derivation of the WALD-AIPW weights in the paper.
+
+We the use this result to extend the package OutcomeWeights to also include the LATT and LATU estimators.
+
+We start with the estimator for $\hat{\tau}_{LATT}$ derived in the previous section as the ratio of two Wald-ATT components (Adjusted Reduced Form divided by Adjusted First Stage). As shown in the previous section, the scaling factor $1/h$ has been canceled out:
+
+$$\hat{\tau}_{LATT} = \frac{\hat{\tau}_{Wald-ATT}^Y}{\hat{\tau}_{Wald-ATT}^D} = \frac{\mathbb{E}_n \left[ Z(Y - \hat{Y}_0^z) - \frac{(1-Z)h(X)}{1-h(X)} (Y - \hat{Y}_0^z) \right]}{\mathbb{E}_n \left[ Z(D - \hat{D}_0^z) - \frac{(1-Z)h(X)}{1-h(X)} (D - \hat{D}_0^z) \right]}$$
+
+Factoring out the residual terms $(Y - \hat{Y}_0^z)$ and $(D - \hat{D}_0^z)$:
 
 $$\hat{\tau}_{LATT} = \frac{\mathbb{E}_n \left[ \left( Z - \frac{(1-Z)h(X)}{1-h(X)} \right) (Y - \hat{Y}_0^z) \right]}{\mathbb{E}_n \left[ \left( Z - \frac{(1-Z)h(X)}{1-h(X)} \right) (D - \hat{D}_0^z) \right]}$$
 
-To simplify the notation, we define the weight term $\lambda^{new}$ as:
+To simplify the notation we define the weight term $\lambda_{0,i}^{att,z}$ as:
 
-$$\lambda^{new} = \frac{(1-Z)h(X)}{1-h(X)}$$
+$$\lambda_{0,i}^{att,z} = \frac{(1-Z)h(X)}{1-h(X)}$$
 
-We can now rewrite the estimator using matrix notation. Let $1_N$ be a vector of ones of length $N$. The numerator and denominator can be expressed using diagonal matrices for $Z$ and $\lambda^{new}$:
+We can now rewrite the estimator using matrix notation. Let $1_N$ be a vector of ones of length $N$. The numerator and denominator can be expressed using diagonal matrices for $Z$ and $\lambda_{0,i}^{att,z}$:
 
-$$\text{Numerator} = 1_N' \left[ \left( \text{diag}(Z) - \text{diag}(\lambda^{new}) \right) (Y - \hat{Y}_0^z) \right]$$
+$$\text{Numerator} = 1_N' \left[ \left( \text{diag}(Z) - \text{diag}(\lambda_{0,i}^{att,z}) \right) (Y - \hat{Y}_0^z) \right]$$
 
-$$\text{Denominator} = 1_N' \left[ \left( \text{diag}(Z) - \text{diag}(\lambda^{new}) \right) (D - \hat{D}_0^z) \right]$$
+$$\text{Denominator} = 1_N' \left[ \left( \text{diag}(Z) - \text{diag}(\lambda_{0,i}^{att,z}) \right) (D - \hat{D}_0^z) \right]$$
 
-Under the condition that we use a linear smoother such that $\hat{Y}_0^z = S_0^z Y$, we can substitute this into the numerator:
+Under the condition that we use a linear smoother such that $\hat{Y}_0^z = S_{Y,0}^z Y$, we can substitute this into the numerator:
 
-$$
-\begin{aligned}
-\text{Numerator} &= 1_N' \left[ \left( \text{diag}(Z) - \text{diag}(\lambda^{new}) \right) (Y - S_0^z Y) \right] \\
-&= 1_N' \left[ \left( \text{diag}(Z) - \text{diag}(\lambda^{new}) \right) (I_N - S_0^z) \right] Y
-\end{aligned}
-$$
+$$\begin{aligned}
+\text{Numerator} &= 1_N' \left[ \left( \text{diag}(Z) - \text{diag}(\lambda_{0,i}^{att,z}) \right) (Y - S_{Y,0}^z Y) \right] \\
+&= 1_N' \left[ \left( \text{diag}(Z) - \text{diag}(\lambda_{0,i}^{att,z}) \right) (I_N - S_{Y,0}^z ) \right] Y
+\end{aligned}$$
 
 The estimator can be written as a weighted sum of outcomes $\hat{\tau}_{LATT} = \omega Y$. By combining the denominator (which is a scalar) and the vector part of the numerator, we derive the expression for the outcome weights $\omega$:
 
-$$
-\begin{aligned}
-\omega &= \left( 1_N' \left[ \text{diag}(Z)(D - \hat{D}_0^z) - \text{diag}(\lambda^{new})(D - \hat{D}_0^z) \right] \right)^{-1} \\
-& \quad \times 1_N' \left[ \text{diag}(Z)(I_N - S_0^z) - \text{diag}(\lambda^{new})(I_N - S_0^z) \right]
-\end{aligned}
-$$
+$$\begin{aligned}
+\omega &= \left( 1_N' \left[ \text{diag}(Z)(D - \hat{D}_0^z) - \text{diag}(\lambda_{0,i}^{att,z})(D - \hat{D}_0^z) \right] \right)^{-1} \\
+& \quad \times 1_N' \left[ \text{diag}(Z)(I_N - S_{Y,0}^z) - \text{diag}(\lambda_{0,i}^{att,z})(I_N - S_{Y,0}^z) \right]
+\end{aligned}$$
 
 Simplifying by grouping the diagonal matrices:
 
-$$
-\begin{aligned}
-\omega &= \left( 1_N' \left[ (\text{diag}(Z) - \text{diag}(\lambda^{new})) \cdot (D - \hat{D}_0^z) \right] \right)^{-1} \\
-& \quad \times 1_N' \left[ (\text{diag}(Z) - \text{diag}(\lambda^{new})) \cdot (I_N - S_0^z) \right]
-\end{aligned}
-$$
+$$\begin{aligned}
+\omega &= \left( 1_N' \left[ (\text{diag}(Z) - \text{diag}(\lambda_{0,i}^{att,z})) \cdot (D - \hat{D}_0^z) \right] \right)^{-1} \\
+& \quad \times 1_N' \left[ (\text{diag}(Z) - \text{diag}(\lambda_{0,i}^{att,z})) \cdot (I_N - S_{Y,0}^z) \right]
+\end{aligned}$$
 
-This provides the explicit weight representation for the LATT.
+#### **LATU**
 
+The derivation for the LATU weights is analogous to the LATT weights. The only difference is that we now work with the Wald-ATU components. As $Y(0)$ and $D(0)$ under consistency are directly observed for the untreated population, we are interested in the z-specific predictions for $Y(1)$ and $D(1)$ which again can be expressed as:
 
-### 2.6 Replication of average effects R notebook
+$$\hat{Y}_{1}^z = S_{Y,1}^z Y \quad \text{and} \quad \hat{D}_{1}^z = S_{D,1}^z D$$
 
-We replicate the balancing check of the Treatment Effect Estimators as Weighted Outcomes notebook with our new LATT estimator.
+where $S_{Y,1}^z$ and $S_{D,1}^z$ are the corresponding smoothing matrices for outcome $Y$ and treatment $D$ respectively.
+
+We again start with the estimator for $\hat{\tau}_{LATU}$ derived in the previous section as the ratio of two Wald-ATU components with the scaling factor $1/(1-h)$ canceled out:
+
+$$\hat{\tau}_{LATU} = \frac{\hat{\tau}_{Wald-ATU}^Y}{\hat{\tau}_{Wald-ATU}^D} = \frac{\mathbb{E}_n \left[ \frac{Z (1- h(X))}{h(X)} (Y - \hat{Y}_1^z) - (1-Z)(Y - \hat{Y}_1^z) \right]}{\mathbb{E}_n \left[ \frac{Z(1-h(X))}{h(X)} (D - \hat{D}_1^z) - (1-Z)(D - \hat{D}_1^z) \right]}$$
+
+Factoring out the residual terms $(Y - \hat{Y}_1^z)$ and $(D - \hat{D}_1^z)$:
+
+$$\hat{\tau}_{LATU} = \frac{\mathbb{E}_n \left[ \left( \frac{Z (1- h(X))}{h(X)} -(1-Z) \right) (Y - \hat{Y}_1^z) \right]}{\mathbb{E}_n \left[ \left( \frac{Z(1-h(X))}{h(X)} - (1-Z) \right) (D - \hat{D}_1^z) \right]}$$
+
+To simplify the notation we define the weight term $\lambda_{1,i}^{atu,z}$ as:
+
+$$\lambda_{1,i}^{atu,z} = \frac{Z(1-h(X))}{h(X)}$$
+
+We can now rewrite the estimator using matrix notation. Let $1_N$ be a vector of ones of length $N$. The numerator and denominator can be expressed using diagonal matrices for $1-Z$ and $\lambda_{1,i}^{atu,z}$:
+
+$$\text{Numerator} = 1_N' \left[ \left( \text{diag}(\lambda_{1,i}^{atu,z}) - \text{diag}(1-Z) \right) (Y - \hat{Y}_1^z) \right]$$
+
+$$\text{Denominator} = 1_N' \left[ \left( \text{diag}(\lambda_{1,i}^{atu,z}) -\text{diag}(1-Z) \right) (D - \hat{D}_1^z) \right]$$
+
+Under the condition that we use a linear smoother such that $\hat{Y}_1^z = S_{Y,1}^z Y$, we can substitute this into the numerator:
+
+$$\begin{aligned}
+\text{Numerator} &= 1_N' \left[ \left( \text{diag}(\lambda_{1,i}^{atu,z}) - \text{diag}(1-Z) \right) (Y - S_{Y,1}^z Y) \right] \\
+&= 1_N' \left[ \left( \text{diag}(\lambda_{1,i}^{atu,z}) - \text{diag}(1-Z) \right) (I_N - S_{Y,1}^z ) \right] Y
+\end{aligned}$$
+
+The estimator can be written as a weighted sum of outcomes $\hat{\tau}_{LATU} = \omega Y$. By combining the denominator (which is a scalar) and the vector part of the numerator, we derive the expression for the outcome weights $\omega$:
+
+$$\begin{aligned}
+\omega &= \left( 1_N' \left[\text{diag}(\lambda_{1,i}^{atu,z})(D - \hat{D}_1^z) - \text{diag}(1-Z)(D - \hat{D}_1^z) \right] \right)^{-1} \\
+& \quad \times 1_N' \left[ \text{diag}(\lambda_{1,i}^{atu,z})(I_N - S_{Y,1}^z) - \text{diag}(1-Z)(I_N - S_{Y,1}^z) \right]
+\end{aligned}$$
+
+Simplifying by grouping the diagonal matrices:
+
+$$\begin{aligned}
+\omega &= \left( 1_N' \left[ \left( \text{diag}(\lambda_{1,i}^{atu,z}) - \text{diag}(1-Z) \right) \cdot (D - \hat{D}_1^z) \right] \right)^{-1} \\
+& \quad \times 1_N' \left[ \left( \text{diag}(\lambda_{1,i}^{atu,z}) - \text{diag}(1-Z) \right) \cdot (I_N - S_{Y,1}^z) \right]
+\end{aligned}$$
+
+### **2.6 Replication of average effects R notebook**
+
+We replicate the balancing check of the Treatment Effect Estimators as Weighted Outcomes notebook by Knaus [5] with our new LATT and LATU estimators, which we implemented in the OutcomeWeights package.
+
+For computational reasons and simplicity we use only 5-fold-cross-fitting in this replication.
 
 First we load all necessary libraries plus the new version of the OutcomeWeights package we created.
 
-
-```{r}
+```{r, message=FALSE, warning=FALSE}
 library(devtools)
 
 # Define the relative path to where our Outcome Wights package is located
@@ -642,7 +1152,6 @@ if (!require("gridExtra")) install.packages("gridExtra", dependencies = TRUE); l
 set.seed(1234)
 ```
 
-
 First we load the data and create the necessary variables.
 
 ```{r}
@@ -664,22 +1173,23 @@ Let's run the DML implementation of the package with 5-fold-cross-fitting.
 
 We also include the Wald-AIPW and AIPW-ATT estimators, as they are especially interesting for comparison.
 
-
 ```{r}
 # 5 folds
 dml_5f = dml_with_smoother(Y,D,X,Z,
                            n_cf_folds = 5,
-                           estimators=c("Wald_AIPW_LATT", "Wald_AIPW", "AIPW_ATT"))
+                           # include new estimators plus reference ones
+                           estimators=c("Wald_AIPW_LATT", "Wald_AIPW_LATU", "Wald_AIPW", "AIPW_ATT", "AIPW_ATU"))
 results_dml_5f = summary(dml_5f)
 plot(dml_5f)
 ```
 
-Interestingly, the point estimates of AIPW-ATT and the new WALD-AIPW_LATT are quite similar. This means for the given data, that controlling for unobservables (which is done in Wald_AIPW_LATT via the instrument) does not change the estimate much. This suggests that selection bias introduced by unobservables is low and the unconfoundedness assumption for unobservables seems to hold for the 401(k) dataset. 
+Interestingly, the point estimates of AIPW-ATT and the new WALD-AIPW-LATT are quite similar. The same holds for the point estimates of AIPW-ATU and the new WALD-AIPW-LATU. This means for the given data, that controlling for unobservables (which is done in Wald-AIPW-LATT and WALD-AIPW-LATU via the instrument) does not change the estimate much. This suggests that selection bias introduced by unobservables is low and the unconfoundedness assumption for unobservables seems to hold for the 401(k) dataset.
 
-When comparing the point estimate of the new Wald_AIPW_LATT vs the WALD-AIPW (classical LATE) we can see that they differ considerably with the LATE estimate being considerably lower. The WALD-AIPW-LATT and the WALD-AIPW are trying to balance the covariate distribution differently. While the classical WALD-AIPW estimator tries to minimize the variance of observables between treated and untreated, the WALD-AIPW_LATT estimator balances the covariate distribution to match the weights of the treated ($D=1$). If the estimates differ and the WALD-AIPW-LATT is higher this implies, that the sub-population with higher treatment probabilities have larger treatment effects. By re-weighting to target the actual treated population, the WALD-AIPW-LATT estimator captures these larger gains, whereas the standard Wald estimator focuses on the average complier, who seem to have lower treatment effects. This means also that in this dataset there is probably a lot of effect heterogeneity, especially between the treated and untreated population.
+When comparing the point estimate of the new Wald-AIPW-LATT vs the Wald-AIPW (classical LATE) we can see that they differ considerably with the LATE estimate being considerably lower. The WALD-AIPW-LATT and the WALD-AIPW are trying to balance the covariate distribution differently. While the classical WALD-AIPW estimator tries to minimize the variance, the WALD-AIPW-LATT estimator balances the covariate distribution to match the weights of the group assigned to the instrument ($Z=1$). If the estimates differ and the WALD-AIPW-LATT is higher this implies, that the sub-population with higher probabilities of receiving the instrument have larger treatment effects. By re-weighting to target the actual instrumented population, the WALD-AIPW-LATT estimator captures these larger gains, whereas the standard Wald-AIPW estimator focuses on the average complier, who seem to have lower treatment effects. This means also that in this dataset there is probably a lot of effect heterogeneity, especially between the instrumented and not instrumented population.
 
+This is even more likely when noticing that the Wald-AIPW-LATU has a considerably lower estimate than Wald-AIPW and is subsequently also lower as the Wald-AIPW-LATT, suggesting that the the $Z=0$ population has lower treatment effects than the $Z=1$ group.
 
-Let's extract the weights and confirm numerical equivalence.
+As in the original notebook, let's extract the weights and confirm numerical equivalence.
 
 ```{r}
 omega_dml_5f = get_outcome_weights(dml_5f)
@@ -689,10 +1199,9 @@ cat("ω'Y replicates point etimates?",
     ))
 ```
 
-The output confirms that the weight representation replicates the point estimates of all three estimators including our new Wald-AIPW_LATT estimator,
+The output confirms that the weight representation replicates the point estimates of all five estimators including our new Wald_AIPW_LATT and Wald_AIPW_LATU estimators.
 
 Now let's recreate the covariance balancing checks.
-
 
 ```{r}
 threshold = 0.1
@@ -717,22 +1226,43 @@ create_love_plot = function(title, index) {
 
 # Now you can call this function for each plot:
 love_plot_waipw_latt = create_love_plot("Wald-AIPW-LATT", 1)
-love_plot_waipw = create_love_plot("Wald-AIPW", 2)
-love_plot_aipw_att = create_love_plot("AIPW-ATT", 3)
+love_plot_waipw_latu = create_love_plot("Wald-AIPW-LATU", 2)
+love_plot_waipw = create_love_plot("Wald-AIPW", 3)
+love_plot_aipw_att = create_love_plot("AIPW-ATT", 4)
+love_plot_aipw_atu = create_love_plot("AIPW-ATU", 5)
 love_plot_waipw_latt
+love_plot_waipw_latu
 love_plot_waipw
 love_plot_aipw_att
+love_plot_aipw_atu
 ```
 
-The Love plots confirm that our derived LATT weights are highly effective for covariate balancing in the given data. The Absolute Standardized Mean Differences (ASMDs) for all covariates are well below the threshold of 0.1, indicating excellent balance between the treated and control groups after weighting, even for the initially highly imbalanced covariates like "Income" or "Home Owner".
+The Love plots confirm that our derived LATT and LATU weights are highly effective for covariate balancing in the given data. The Absolute Standardized Mean Differences (ASMDs) for all covariates are well below the threshold of $0.1$ for both new estimators, indicating excellent balance between the treated and control groups after weighting, even for the initially highly imbalanced covariates like "Income" or "Home Owner".
 
-The Wald-AIPW-LATT estimator balancing looks quite similar to the AIPW-ATT estimator, which is expected as both estimators target the effect within the Treated population and therefore target the same covariate distribution of the Treated subgroup. This connects to the similar point estimates from above. The Wald-AIPW estimator also achieves good balance, but it targets the subgroup of Compliers resulting in slightly different balances for some covariates, for example "Benfit pension" or "Male". That the covariance balancing is working also implies that the observed differenting point estimates between Wald-AIPW-LATT and WALD-AIPW are not driven by imbalances in observed covariates but rather by treatment effect heterogeneity between the treated subgroup and the average complier.
+That the covariate balancing is working for all estimators implies that the observed difference in point estimates between Wald-AIPW-LATT, Wald-AIPW-LATU and Standard Wald-AIPW that we observed above is not driven by imbalances in observed covariates. Instead, it is driven by treatment effect heterogeneity: the average complier in the eligible population (targeted by our LATT estimator) appears to experience larger gains than the marginal complier (targeted by the Standard Wald) who on the other hand experience larger gains than the non-eligible population.
 
 Finally, let's also look at the descriptive statistics of the weights.
-
 
 ```{r}
 summary(omega_dml_5f)
 ```
 
-We can see that the weights of the new WALD-AIPW_LATT are similar to the weights of the WALD_AIPW estimator only scale normalized.
+We can see that the weights of the new WALD-AIPW-LATT and WALD-AIPW-LATU are similar to the weights of the WALD_AIPW estimator only scale normalized.
+
+### **2.7 User Feedback**
+
+As mentioned in the original application notebook working with many NxN smoother in the package can be computationally intensive and memory consuming for large datasets. One could think about optimizing the implementation by working e.g. with sparse matrices like it is often done in Big Data Computing. This could have the potential to speed up the computations and reduce memory consumption.
+
+Another idea would be to improve the usability and ease of use of the package by natively supporting the plotting of covariate balancing checks (like the Love plots shown above) directly in the package similar to how it is already done for the point estimates and confidence intervals by the plot.dml_with_smoother function. This would allow users to quickly check the balancing properties of the different estimators without having to manually create the plots and rely on external packages. As mentioned in the paper, covariance balancing checks is one of the most useful applications of the weight representation of treatment effect estimators and supporting them natively in the package would enhance its usability and be a great selling point for users who actively search for ways to check covariate balance in their treatment effect estimation.
+
+### **References**
+
+[1] S. G. Donald, Y.-C. Hsu, and R. P. Lieli, "Testing the unconfoundedness assumption via inverse probability weighted estimators of (L)ATT," J. Bus. Econ. Statist., vol. 32, no. 3, pp. 395-415, 2014, doi: 10.1080/07350015.2014.888290.
+
+[2] K. Hirano, G. W. Imbens, and G. Ridder, "Efficient estimation of average treatment effects using the estimated propensity score," Econometrica, vol. 71, no. 4, pp. 1161–1189, 2003.
+
+[3] M. C. Knaus, "Treatment effect estimators as weighted outcomes," arXiv:2411.11559, 2024.
+
+[4] M. C. Knaus, "OutcomeWeights repository," GitHub. [Online]. Available: <https://github.com/MCKnaus/OutcomeWeights/tree/master>.
+
+[5] M. C. Knaus, "Application notebook: Average 401k," 2024. [Online]. Available: <https://mcknaus.github.io/assets/code/Notebook_Application_average_401k.nb.html>.
