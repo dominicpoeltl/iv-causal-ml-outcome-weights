@@ -1,2 +1,31 @@
+# Local reference PDFs and reading notes.
+# Keep copyrighted papers or course-only materials out of the public repo.
 Paper/
+
+# R session and workspace files
 .Rhistory
+.RData
+.Ruserdata
+.Rproj.user/
+
+# Render/build caches
+*_cache/
+*_files/
+.quarto/
+_freeze/
+
+# Local package/library artifacts
+renv/library/
+renv/staging/
+*.tar.gz
+
+# Logs, temporary files, and OS metadata
+*.log
+*.tmp
+*.bak
+.DS_Store
+Thumbs.db
+
+# Course-internal material
+Group-assignment_2025.pdf
+CML_Group_Assignment_Presentation_Trushkov_Poeltl.pdf
