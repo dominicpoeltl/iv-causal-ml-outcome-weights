@@ -2,6 +2,14 @@
 
 This repository contains a course project for a causal machine learning assignment. The analysis derives and applies outcome-weight representations for local average treatment effects on the treated and untreated, then evaluates the resulting estimators in a replication based on the 401(k) pension dataset. The project combines identification arguments, Neyman-orthogonal score construction, Double Machine Learning, and covariate balance diagnostics. It is intended as a reproducible academic portfolio artifact, not as a polished software package or standalone research paper.
 
+This README is the recommended browser-readable entry point for GitHub. The full derivations and code remain in the R Markdown notebook.
+
+## Quick Links
+
+- [Full R Markdown source](Assignment.Rmd)
+- [Rendered notebook output](Assignment.nb.html)
+- [Reproducibility helper](requirements.R)
+
 ## Motivation
 
 Many empirical economics applications use instrumental variables to identify local treatment effects when treatment take-up is imperfect. This project focuses on two target parameters: the Local Average Treatment effect on the Treated (LATT) and the Local Average Treatment effect on the Untreated (LATU). Building on the outcome-weights perspective, the assignment shows how these estimators can be represented as weighted sums of observed outcomes, which makes it possible to inspect covariate balance and compare target populations across estimators.
@@ -27,13 +35,14 @@ The `Paper/` folder is intentionally ignored because it contains local reference
 
 ```text
 .
-|-- Assignment.Rmd                          # Main R Markdown notebook
+|-- README.md                               # GitHub-facing project overview
+|-- Assignment.Rmd                          # Full R Markdown source
 |-- Assignment.nb.html                      # Rendered notebook output
-|-- requirements.R                          # Minimal package installation helper
+|-- requirements.R                          # Minimal dependency helper
 |-- OutcomeWeights/                         # Local OutcomeWeights submodule used by the analysis
 |-- extensions/
 |   `-- outcomeweights_dml_smoother_extension.R # Attributed DML smoother adaptation
-`-- Figures/                                # Exported figures from the analysis, if committed
+`-- Figures/                                # Selected exported figures
 ```
 
 ## Reproducibility
@@ -83,6 +92,18 @@ Current rendered estimates:
 | AIPW-ATU | 10,272.5 | 976.4 |
 | Wald-AIPW-LATT | 14,826.2 | 2,326.5 |
 | Wald-AIPW-LATU | 9,046.5 | 1,349.1 |
+
+Point estimates and confidence intervals for the estimators reported in the rendered notebook:
+
+![Point estimates and confidence intervals](Figures/point_estimates.png)
+
+Covariate balance diagnostic for the Wald-AIPW-LATT outcome weights:
+
+![Wald-AIPW-LATT Love plot](Figures/wald-aipw-latt-love-plot.png)
+
+Covariate balance diagnostic for the Wald-AIPW-LATU outcome weights:
+
+![Wald-AIPW-LATU Love plot](Figures/wald-aipw-latu-love-plot.png)
 
 ## Technical Stack
 
