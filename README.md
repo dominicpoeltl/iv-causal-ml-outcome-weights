@@ -23,11 +23,13 @@ The project covers:
 - Double Machine Learning with cross-fitting and generalized random forest nuisance estimation.
 - Use of a local `OutcomeWeights` submodule for the outcome-weight workflow.
 - An explicitly attributed extension file in `extensions/` that documents the small project-specific LATT/LATU additions to the DML-with-smoother workflow adapted from `OutcomeWeights`.
-- Covariate balance checks using Love plots and absolute standardized mean differences.
+- Covariate balance checks using Love plots and absolute standardized mean differences, following the diagnostic workflow used in the `OutcomeWeights` 401(k) application vignette.
 
 ## Data
 
 The empirical illustration uses the `pension` dataset loaded after attaching the `hdm` package in `Assignment.Rmd`. No raw individual-level data files are stored in the repository. The analysis constructs the treatment, instrument, outcome, and covariate matrix in the notebook from the package-provided dataset.
+
+The empirical setup follows the 401(k) application vignette of Knaus' `OutcomeWeights` package, which uses `hdm::pension` to define the treatment, instrument, outcome, and covariate matrix for illustrating outcome weights in an instrumental-variable setting.
 
 The `Paper/` folder is intentionally ignored because it contains local reference copies that should not be committed. No course task sheet or presentation PDF is required to run the analysis.
 
@@ -115,6 +117,10 @@ Covariate balance diagnostic for the Wald-AIPW-LATU outcome weights:
 - `cobalt` for balance diagnostics
 - `tidyverse`, `viridis`, and `gridExtra` for data handling and visualization
 - `devtools`, `rmarkdown`, and `knitr` for local package installation and rendering
+
+## Attribution
+
+This project builds on Michael C. Knaus' [`OutcomeWeights`](https://github.com/MCKnaus/OutcomeWeights) package and its [`OutcomeWeights` 401(k) application vignette](https://mcknaus.github.io/OutcomeWeights/articles/Application_average_401k.html). In particular, the empirical application structure, use of the `hdm::pension` dataset, outcome-weight extraction workflow, and covariate-balance diagnostics are based on the package vignette. The course-project contribution was to derive and integrate additional LATT/LATU estimators and document the resulting workflow for the assignment.
 
 ## Team and Contributions
 
