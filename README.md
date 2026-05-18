@@ -1,18 +1,18 @@
 # Local Average Treatment Effects with Outcome Weights
 
-This repository contains a course project for a causal machine learning assignment. The analysis derives and applies outcome-weight representations for local average treatment effects on the treated and untreated, then evaluates the resulting estimators in a replication based on the 401(k) pension dataset. The project combines identification arguments, Neyman-orthogonal score construction, Double Machine Learning, and covariate balance diagnostics. It is intended as a reproducible academic portfolio artifact, not as a polished software package or standalone research paper.
+This repository documents a reproducible causal machine learning project on outcome-weight representations for local treatment effects in an instrumental-variable setting. The analysis studies Local Average Treatment Effects on the Treated and Untreated (LATT/LATU), derives Neyman-orthogonal score representations, implements the estimators in a Double Machine Learning workflow, and evaluates them in a 401(k) pension-data application.
 
 This README is the recommended browser-readable entry point for GitHub. The full derivations and code remain in the R Markdown notebook.
 
 ## Quick Links
 
-- [Full R Markdown source](Assignment.Rmd)
-- [Rendered notebook output](Assignment.nb.html)
+- [Full R Markdown source](analysis.Rmd)
+- [Rendered notebook output](analysis.nb.html)
 - [Reproducibility helper](requirements.R)
 
 ## Motivation
 
-Many empirical economics applications use instrumental variables to identify local treatment effects when treatment take-up is imperfect. This project focuses on two target parameters: the Local Average Treatment effect on the Treated (LATT) and the Local Average Treatment effect on the Untreated (LATU). Building on the outcome-weights perspective, the assignment shows how these estimators can be represented as weighted sums of observed outcomes, which makes it possible to inspect covariate balance and compare target populations across estimators.
+Many empirical economics applications use instrumental variables to identify local treatment effects when treatment take-up is imperfect. This project focuses on two target parameters: the Local Average Treatment effect on the Treated (LATT) and the Local Average Treatment effect on the Untreated (LATU). Building on the outcome-weights perspective, the analysis shows how these estimators can be represented as weighted sums of observed outcomes, which makes it possible to inspect covariate balance and compare target populations across estimators.
 
 ## Methods
 
@@ -27,19 +27,19 @@ The project covers:
 
 ## Data
 
-The empirical illustration uses the `pension` dataset loaded after attaching the `hdm` package in `Assignment.Rmd`. No raw individual-level data files are stored in the repository. The analysis constructs the treatment, instrument, outcome, and covariate matrix in the notebook from the package-provided dataset.
+The empirical illustration uses the `pension` dataset loaded after attaching the `hdm` package in `analysis.Rmd`. No raw individual-level data files are stored in the repository. The analysis constructs the treatment, instrument, outcome, and covariate matrix in the notebook from the package-provided dataset.
 
 The empirical setup follows the 401(k) application vignette of Knaus' `OutcomeWeights` package, which uses `hdm::pension` to define the treatment, instrument, outcome, and covariate matrix for illustrating outcome weights in an instrumental-variable setting.
 
-The `Paper/` folder is intentionally ignored because it contains local reference copies that should not be committed. No course task sheet or presentation PDF is required to run the analysis.
+The `Paper/` folder is intentionally ignored because it contains local reference copies that should not be committed. No external task sheet or presentation PDF is required to run the analysis.
 
 ## Repository Structure
 
 ```text
 .
 |-- README.md                               # GitHub-facing project overview
-|-- Assignment.Rmd                          # Full R Markdown source
-|-- Assignment.nb.html                      # Rendered notebook output
+|-- analysis.Rmd                            # Full R Markdown source
+|-- analysis.nb.html                        # Rendered notebook output
 |-- requirements.R                          # Minimal dependency helper
 |-- OutcomeWeights/                         # Local OutcomeWeights submodule used by the analysis
 |-- extensions/
@@ -76,14 +76,14 @@ On Windows, installing the local package may require Rtools because `OutcomeWeig
 Render the notebook from the repository root:
 
 ```bash
-Rscript -e "rmarkdown::render('Assignment.Rmd')"
+Rscript -e "rmarkdown::render('analysis.Rmd')"
 ```
 
-The rendered analysis is available as `Assignment.nb.html`. The main empirical section uses a fixed seed and 5-fold cross-fitting for reproducibility.
+The rendered analysis is available as `analysis.nb.html`. The main empirical section uses a fixed seed and 5-fold cross-fitting for reproducibility.
 
 ## Key Outputs
 
-The current rendered notebook reports point estimates for Wald-AIPW, AIPW-ATT, AIPW-ATU, Wald-AIPW-LATT, and Wald-AIPW-LATU on the 401(k) application. In the rendered output, the LATT and LATU extensions replicate the corresponding outcome-weighted point estimates and are accompanied by covariate balance diagnostics. The reported estimates should be interpreted as course-project outputs for methodological illustration, not as standalone empirical claims.
+The current rendered notebook reports point estimates for Wald-AIPW, AIPW-ATT, AIPW-ATU, Wald-AIPW-LATT, and Wald-AIPW-LATU on the 401(k) application. In the rendered output, the LATT and LATU extensions replicate the corresponding outcome-weighted point estimates and are accompanied by covariate balance diagnostics. The reported estimates should be interpreted as methodological illustration, not as standalone empirical claims.
 
 Current rendered estimates:
 
@@ -120,12 +120,12 @@ Covariate balance diagnostic for the Wald-AIPW-LATU outcome weights:
 
 ## Attribution
 
-This project builds on Michael C. Knaus' [`OutcomeWeights`](https://github.com/MCKnaus/OutcomeWeights) package and its [`OutcomeWeights` 401(k) application vignette](https://mcknaus.github.io/OutcomeWeights/articles/Application_average_401k.html). In particular, the empirical application structure, use of the `hdm::pension` dataset, outcome-weight extraction workflow, and covariate-balance diagnostics are based on the package vignette. The course-project contribution was to derive and integrate additional LATT/LATU estimators and document the resulting workflow for the assignment.
+This project builds on Michael C. Knaus' [`OutcomeWeights`](https://github.com/MCKnaus/OutcomeWeights) package and its [`OutcomeWeights` 401(k) application vignette](https://mcknaus.github.io/OutcomeWeights/articles/Application_average_401k.html). In particular, the empirical application structure, use of the `hdm::pension` dataset, outcome-weight extraction workflow, and covariate-balance diagnostics are based on the package vignette. The project contribution was to derive and integrate additional LATT/LATU estimators and document the resulting workflow for reproducible review.
 
 ## Team and Contributions
 
-This was a group assignment by Egor Trushkov and Dominic Pöltl. Dominic Pöltl contributed to the derivation and implementation of the additional LATT/LATU estimators, the empirical analysis workflow, and the preparation of the public repository documentation.
+This project was developed by Egor Trushkov and Dominic Pöltl. Dominic Pöltl contributed to the derivation of the LATT/LATU score representations, their implementation in the DML workflow, the empirical analysis, and the preparation of the public reproducibility documentation.
 
-## Academic Disclaimer
+## Scope and Disclaimer
 
-This repository was prepared from a causal machine learning course assignment. The analysis is educational and should be read as evidence of implementation, derivation, and reproducibility practice rather than as a peer-reviewed research result.
+This repository originated in a causal machine learning course. It is intended as a reproducible academic project and portfolio artifact, not as a polished software package or standalone peer-reviewed research paper. The empirical results should be read as methodological illustration and evidence of implementation, derivation, and reproducibility practice rather than as independent policy claims.

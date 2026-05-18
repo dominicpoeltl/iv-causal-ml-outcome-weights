@@ -1,4 +1,4 @@
-# Minimal dependency setup for reproducing Assignment.Rmd.
+# Minimal dependency setup for reproducing analysis.Rmd.
 
 required_packages <- c(
   "devtools",

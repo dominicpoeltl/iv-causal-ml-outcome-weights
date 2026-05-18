@@ -1,5 +1,5 @@
 ---
-title: "Group Assignment Causal Machine Learning"
+title: "Outcome-Weight Representations for Local Treatment Effects"
 author: "Egor Trushkov; Dominic Pöltl"
 date: "`r Sys.Date()`"
 output:

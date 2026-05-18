@@ -1,5 +1,5 @@
 # Rendered notebook output;  exclude from language statistics
-Assignment.nb.html linguist-generated=true
+analysis.nb.html linguist-generated=true
 
 # Figures and rendered assets should not affect language stats
 Figures/** linguist-generated=true
