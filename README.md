@@ -9,6 +9,7 @@ This README is the recommended browser-readable entry point for GitHub. The full
 - [Full R Markdown source](analysis.Rmd)
 - [Rendered notebook output](analysis.nb.html)
 - [Reproducibility helper](requirements.R)
+- [Pinned OutcomeWeights reproducibility fork](https://github.com/dominicpoeltl/outcomeweights-latt-latu-reproducibility)
 
 ## Motivation
 
@@ -21,7 +22,7 @@ The project covers:
 - Identification of LATT and LATU under standard instrumental-variable assumptions.
 - Derivation of Neyman-orthogonal scores for Wald-AIPW-style LATT and LATU estimators.
 - Double Machine Learning with cross-fitting and generalized random forest nuisance estimation.
-- Use of a local `OutcomeWeights` submodule for the outcome-weight workflow.
+- Use of a pinned public `OutcomeWeights` reproducibility fork for the outcome-weight workflow.
 - An explicitly attributed extension file in `extensions/` that documents the small project-specific LATT/LATU additions to the DML-with-smoother workflow adapted from `OutcomeWeights`.
 - Covariate balance checks using Love plots and absolute standardized mean differences, following the diagnostic workflow used in the `OutcomeWeights` 401(k) application vignette.
 
@@ -41,7 +42,7 @@ The `Paper/` folder is intentionally ignored because it contains local reference
 |-- analysis.Rmd                            # Full R Markdown source
 |-- analysis.nb.html                        # Rendered notebook output
 |-- requirements.R                          # Minimal dependency helper
-|-- OutcomeWeights/                         # Local OutcomeWeights submodule used by the analysis
+|-- OutcomeWeights/                         # Pinned OutcomeWeights reproducibility fork
 |-- extensions/
 |   `-- outcomeweights_dml_smoother_extension.R # Attributed DML smoother adaptation
 `-- Figures/                                # Selected exported figures
@@ -49,7 +50,9 @@ The `Paper/` folder is intentionally ignored because it contains local reference
 
 ## Reproducibility
 
-The project is written in R and R Markdown. The main notebook installs and loads the local `OutcomeWeights` submodule used by the rendered analysis. The file `extensions/outcomeweights_dml_smoother_extension.R` records the small project-specific LATT/LATU additions to the DML-with-smoother workflow and is included with explicit attribution to the original `OutcomeWeights` implementation.
+The project is written in R and R Markdown. The main notebook installs and loads the `OutcomeWeights` submodule used by the rendered analysis. This submodule points to a public reproducibility fork at [`dominicpoeltl/outcomeweights-latt-latu-reproducibility`](https://github.com/dominicpoeltl/outcomeweights-latt-latu-reproducibility), pinned by Git to the package state used for this project. The fork is used because the analysis depends on project-specific LATT/LATU additions and a fixed historical package state rather than the current development version of upstream `OutcomeWeights`.
+
+The file `extensions/outcomeweights_dml_smoother_extension.R` records the small project-specific LATT/LATU additions to the DML-with-smoother workflow and is included with explicit attribution to the original `OutcomeWeights` implementation.
 
 Clone or initialize the repository with submodules:
 
@@ -110,7 +113,7 @@ Covariate balance diagnostic for the Wald-AIPW-LATU outcome weights:
 ## Technical Stack
 
 - R and R Markdown
-- `OutcomeWeights` local submodule
+- Pinned public `OutcomeWeights` reproducibility fork
 - Attributed DML-with-smoother extension in `extensions/`
 - `grf` for generalized random forest nuisance estimation
 - `hdm` for the pension application dataset
@@ -120,7 +123,9 @@ Covariate balance diagnostic for the Wald-AIPW-LATU outcome weights:
 
 ## Attribution
 
-This project builds on Michael C. Knaus' [`OutcomeWeights`](https://github.com/MCKnaus/OutcomeWeights) package and its [`OutcomeWeights` 401(k) application vignette](https://mcknaus.github.io/OutcomeWeights/articles/Application_average_401k.html). In particular, the empirical application structure, use of the `hdm::pension` dataset, outcome-weight extraction workflow, and covariate-balance diagnostics are based on the package vignette. The project contribution was to derive and integrate additional LATT/LATU estimators and document the resulting workflow for reproducible review.
+This project builds on Michael C. Knaus' [`OutcomeWeights`](https://github.com/MCKnaus/OutcomeWeights) package and its [`OutcomeWeights` 401(k) application vignette](https://mcknaus.github.io/OutcomeWeights/articles/Application_average_401k.html). In particular, the empirical application structure, use of the `hdm::pension` dataset, outcome-weight extraction workflow, and covariate-balance diagnostics are based on the package vignette.
+
+For reproducibility, this repository uses a public fork/snapshot of `OutcomeWeights` that preserves the package state and project-specific LATT/LATU additions used in the analysis. The fork is not intended to replace the upstream package; it exists to make this repository's computational dependency public, inspectable, and pinned. The project contribution was to derive and integrate additional LATT/LATU estimators and document the resulting workflow for reproducible review.
 
 ## Team and Contributions
 
